@@ -1,0 +1,3 @@
+# Build de la doc
+docs/_build/
+__pycache__/
