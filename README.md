@@ -1,11 +1,16 @@
-# embewi-contract
+# Embewi
 
-Contrat d'interface **versionné** (`v1alpha1`) entre l'agent embarqué ESP32
-([iobewi/embewi](https://github.com/iobewi/embewi)) et le runtime Kubernetes
-([iobewi/embewi-core](https://github.com/iobewi/embewi-core)) du système Embewi.
+Dépôt de **référence** du système Embewi : le **contrat** d'interface versionné
+(`v1alpha1`), la documentation transverse et le site de doc.
 
-**Source de vérité** de l'API Core ↔ Agent : les deux composants s'y conforment
-et l'épinglent par version (submodule / tag).
+Embewi gère des microcontrôleurs (ESP32) comme des nœuds OTA d'un cluster
+Kubernetes, via deux composants qui se conforment au contrat :
+
+- **Agent** — [iobewi/embewi-agent-esp](https://github.com/iobewi/embewi-agent-esp) : firmware ESP32 / ESP-IDF.
+- **Core** — [iobewi/embewi-core](https://github.com/iobewi/embewi-core) : runtime Kubernetes.
+
+**Source de vérité** de l'API Core ↔ Agent : les composants l'épinglent par
+version (submodule / tag).
 
 ## Contenu
 
