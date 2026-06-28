@@ -22,8 +22,9 @@ Contrat Core ↔ Agent <embewi-contract-v2>
 
 - **Référence (ce dépôt)** — [`iobewi/embewi`](https://github.com/iobewi/embewi) :
   contrat `v1alpha1` + doc système + site.
-- **Agent** — [`iobewi/embewi-agent-esp`](https://github.com/iobewi/embewi-agent-esp) :
-  firmware ESP32/ESP-IDF. Docs propres au device (build prod, Secure Boot) dans son repo.
+- **Agent** — [`iobewi/embewi-agent-esp`](https://github.com/iobewi/embewi-agent-esp)
+  · [📖 doc](https://iobewi.github.io/embewi-agent-esp/) : firmware ESP32/ESP-IDF.
+  Docs propres au device (build prod, Secure Boot) sur son site.
 - **Core** — [`iobewi/embewi-core`](https://github.com/iobewi/embewi-core) :
   runtime Kubernetes. Design des contrôleurs dans son repo.
 
