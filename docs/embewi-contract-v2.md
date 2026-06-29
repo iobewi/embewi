@@ -80,6 +80,13 @@ Exigences minimales MVP :
 - Anti-rollback eFuse activé dès qu'un schéma de version de sécurité est en place.
 - Flash encryption : optionnel MVP, obligatoire si le device peut être volé.
 
+Défense en profondeur réseau (opt-in production, §8) :
+- VLAN dédié : subnet ESP isolé, seuls les nodes Core ont une route L3 vers lui.
+- NetworkPolicy K8s : egress vers le subnet ESP réservé aux Pods Core (ipBlock).
+- `CONFIG_EMBEWI_ENABLE_IP_FILTER` : l'agent rejette les connexions hors CIDR
+  autorisé avant tout handler (`open_fn` httpd). CIDR configurable via McuConfigMap
+  `allowed_cidr` — utiliser le CIDR du cluster plutôt que l'IP exacte du Pod Core.
+
 > **Dev vs Prod.** Ces exigences sont des opérations eFuse **irréversibles** :
 > elles ne s'activent **pas en dev**. Elles sont portées par un profil de build
 > séparé et opt-in (`sdkconfig.defaults.prod` + `CONFIG_EMBEWI_VERIFY_CORE_CERT`
@@ -640,6 +647,7 @@ stocké dans `ctrl_url` (contrat §1).
 ```json
 {
   "node_id": "embewi-a1b2c3",
+  "ip": "192.168.10.42",
   "ts": 1710000000,
   "state": "running",
   "deployment_id": "wheel-controller-1.1.0",
@@ -657,6 +665,11 @@ stocké dans `ctrl_url` (contrat §1).
 `ota_validated` distingue `pending_verify` (false) de `running` (true) même si
 le digest est déjà celui de la nouvelle image.
 
+`ip` : adresse IPv4 courante de l'interface Wi-Fi STA. **Champ requis** — c'est
+la source de vérité que le Core utilise pour mettre à jour `endpoints[].addresses`
+de l'EndpointSlice (§8). Permet une IP dynamique (DHCP) sans action manuelle :
+le prochain heartbeat suffit à corriger le routage.
+
 **Horloge / `ts` (NORMATIF).** `ts` est un **epoch UNIX en secondes, UTC**,
 synchronisé par **SNTP** au boot (serveur via la clé config `ntp_server` + NTP
 DHCP). Tant que la synchro n'a pas eu lieu, l'horloge ESP démarre à 1970 et `ts`
@@ -672,11 +685,12 @@ l'heure n'est pas posée (fail-closed assumé).
 Les champs de télémétrie au-delà du minimum requis sont **optionnels** et
 exposables côté Core en métriques (`kubectl top mcunode`, Prometheus).
 
-Champs **requis** : `node_id`, `ts`, `state`, `ota_validated`,
+Champs **requis** : `node_id`, `ip`, `ts`, `state`, `ota_validated`,
 `config_generation`. Tout le reste est best-effort.
 
 | Champ              | Statut    | Métrique Core suggérée            |
 |--------------------|-----------|-----------------------------------|
+| `ip`               | présent   | — (pilote EndpointSlice §8)       |
 | `heap_free`        | présent   | `mcunode_heap_free_bytes`         |
 | `rssi`             | présent   | `mcunode_wifi_rssi_dbm`           |
 | `uptime_ms`        | présent   | `mcunode_uptime_seconds`          |
@@ -887,6 +901,20 @@ ports:
   - port: 8080
 ```
 
+**IP de l'endpoint (NORMATIF).**
+Le Core **DOIT** mettre à jour `endpoints[].addresses` avec le champ `ip` du
+heartbeat à chaque réception. L'IP source TCP n'est pas utilisée : elle peut
+différer de l'IP de management en présence d'un proxy ou d'un routage asymétrique.
+
+```text
+À chaque heartbeat reçu :
+  EndpointSlice.endpoints[].addresses ← heartbeat.ip
+```
+
+Cette règle rend l'IP dynamique (DHCP) transparente : le prochain heartbeat
+(toutes les 5 s) suffit à corriger le routage après un changement d'adresse,
+sans re-provisioning. Un device avec IP statique NVS converge immédiatement.
+
 Pilotage de `ready` :
 
 ```text
@@ -899,6 +927,149 @@ state ∈ {degraded selon politique, rollback, failed}→ ready=false
 Le Core **ne marque jamais** un déploiement `Ready` avant la confirmation agent
 (`state=running` + `ota_validated=true` + bon `deployment_id`). Le healthcheck
 devient routage, gratuitement.
+
+**Sécurité réseau (défense en profondeur).**
+Le subnet de management des ESP doit être isolé sur un VLAN dédié et protégé
+par une NetworkPolicy K8s (egress vers le subnet ESP réservé aux Pods Core).
+Côté agent, `CONFIG_EMBEWI_ENABLE_IP_FILTER` (opt-in production) rejette les
+connexions hors du CIDR autorisé avant tout handler, via `open_fn` du serveur
+HTTPS. Le CIDR est configurable par McuConfigMap (`allowed_cidr` — cluster CIDR
+recommandé). Ces trois couches (VLAN + NetworkPolicy + filtrage agent) sont
+complémentaires au token Bearer.
+
+---
+
+## 8a. Status conditions des CRDs **[NORMATIF]**
+
+Les CRDs exposent des `.status.conditions[]` au format Kubernetes standard
+(`type` / `status` / `reason` / `message` / `lastTransitionTime`). Cela permet
+l'intégration native avec `kubectl wait`, ArgoCD, Flux et tout outillage K8s
+qui observe les conditions.
+
+### McuNode — état du device physique
+
+```yaml
+status:
+  conditions:
+    - type: Provisioned
+      status: "True"
+      reason: ProvisioningComplete
+      message: "Device enrôlé — node_id et token établis"
+      lastTransitionTime: "2026-06-29T10:00:00Z"
+    - type: Ready
+      status: "True"
+      reason: HeartbeatOK
+      message: "Heartbeat reçu il y a 3s"
+      lastTransitionTime: "2026-06-29T10:00:03Z"
+```
+
+| Condition | `reason` | `status` | Signification |
+|---|---|---|---|
+| `Provisioned` | `ProvisioningComplete` | True | node_id + token établis |
+| `Provisioned` | `ProvisioningPending` | False | premier boot, portail AP actif |
+| `Ready` | `HeartbeatOK` | True | heartbeat reçu dans les 2× la période (< 10 s) |
+| `Ready` | `HeartbeatTimeout` | False | aucun heartbeat reçu > seuil configurable |
+| `Ready` | `NotProvisioned` | Unknown | device jamais enrôlé |
+
+### McuDeployment — état du cycle OTA + workload
+
+```yaml
+status:
+  conditions:
+    - type: Progressing
+      status: "False"
+      reason: DeploymentComplete
+      message: "OTA terminé, state=running, ota_validated=true"
+      lastTransitionTime: "2026-06-29T10:01:00Z"
+    - type: Available
+      status: "True"
+      reason: WorkloadReady
+      message: "EndpointSlice.ready=true, workload joignable"
+      lastTransitionTime: "2026-06-29T10:01:00Z"
+```
+
+| Condition | `reason` | `status` | Signification |
+|---|---|---|---|
+| `Progressing` | `OTAInProgress` | True | PUT /ota/write ou `pending_verify` en cours |
+| `Progressing` | `DeploymentComplete` | False | OTA terminé, firmware stable |
+| `Progressing` | `OTAFailed` | False | rollback déclenché ou état `failed` terminal |
+| `Available` | `WorkloadReady` | True | EndpointSlice.ready=true |
+| `Available` | `PendingVerification` | False | state=`pending_verify` — image non encore validée |
+| `Available` | `DeviceDegraded` | False | state ∈ {`degraded`, `rollback`, `failed`} |
+| `Available` | `HeartbeatTimeout` | False | device plus joignable |
+
+**`Ready` synthétique** (condition calculée) :
+
+```text
+Ready = True  ←  Progressing=False  AND  Available=True
+```
+
+Utilisé pour `kubectl wait mcudeployment/wheel-left --for=condition=Available`.
+
+Les `reason` sont des codes **stables** — les renommer implique de bumper la
+version API. Le Core les mappe en Events Kubernetes lisibles (§4b).
+
+---
+
+## 8b. Pipeline métriques **[NORMATIF]**
+
+Le Core agrège les heartbeats et expose un endpoint Prometheus `/metrics` sur
+un port dédié (ex. `:9090`). Chaque heartbeat reçu met à jour les gauges du
+device correspondant via son label `node_id`.
+
+```text
+heartbeat.ip (§5)  ──→  gauge  mcunode_heap_free_bytes{node_id="embewi-a1b2c3"}
+heartbeat.rssi     ──→  gauge  mcunode_wifi_rssi_dbm{...}
+heartbeat.ts       ──→  gauge  mcunode_last_heartbeat_timestamp{...}
+…
+```
+
+**Labels communs sur toutes les métriques :**
+
+| Label | Source | Exemple |
+|---|---|---|
+| `node_id` | `heartbeat.node_id` | `embewi-a1b2c3` |
+| `workload` | McuDeployment lié | `wheel-controller` |
+| `chip` | `GET /info` au boot | `esp32c3` |
+
+**Noms de métriques (stables — ne pas renommer sans réviser les dashboards) :**
+
+| Métrique | Type | Source heartbeat |
+|---|---|---|
+| `mcunode_heap_free_bytes` | gauge | `heap_free` |
+| `mcunode_wifi_rssi_dbm` | gauge | `rssi` |
+| `mcunode_uptime_seconds` | gauge | `uptime_ms / 1000` |
+| `mcunode_temperature_celsius` | gauge | `temp_celsius` (filtrer `-127.0`) |
+| `mcunode_task_stack_hwm_bytes` | gauge | `task_hwm_min` |
+| `mcunode_last_heartbeat_timestamp` | gauge | `ts` (epoch UTC) |
+| `mcunode_config_generation` | gauge | `config_generation` |
+| `mcunode_ota_validated` | gauge | `ota_validated` → 0/1 |
+
+**Staleness** : si le Core ne reçoit plus de heartbeat d'un device (timeout),
+il cesse de mettre à jour ses gauges. Prometheus les marque stale après
+`--query.lookback-delta` (5 min par défaut) — les alertes de type `absent()`
+détectent naturellement un device silencieux.
+
+**Intégration Prometheus Operator (recommandée) :**
+
+```yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: embewi-core
+  namespace: embewi
+spec:
+  selector:
+    matchLabels:
+      app: embewi-core
+  endpoints:
+    - port: metrics      # port nommé sur le Service du Core
+      path: /metrics
+      interval: 30s
+```
+
+Sans Prometheus Operator : scrape direct via `prometheus.yml` (`static_configs`
+sur `embewi-core-service:9090`).
 
 ---
 
@@ -915,6 +1086,9 @@ stream .bin brut (HTTP)              self-check borné watchdog
 gère idempotence (staged)            mark_valid / mark_invalid_rollback
 timeout négatif → Failed             heartbeat + logs sortants (config_generation inclus)
 pilote EndpointSlice ready           (ne connaît ni OCI ni Kubernetes)
+met à jour EndpointSlice.addresses ← heartbeat.ip (§8)   émet ip Wi-Fi courante dans le heartbeat (§5)
+maintient status.conditions CRDs (§8a)   (opaque aux conditions K8s)
+expose /metrics Prometheus (§8b)         émet un heartbeat extensible (§5)
 réconcilie McuConfigMap → POST /config  stocke clés/valeurs en NVS (opaque)
 valide sémantique des valeurs config    applique au boot suivant (§4a)
 gère McuNode + enrôlement (token ref)   s'auto-annonce (node_id) au heartbeat (§1a)
