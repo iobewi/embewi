@@ -23,8 +23,9 @@ issues-cross-repo
 > chaque composant (`embewi-core-design.md`, doc Sphinx de l'agent) — il
 > pointe vers eux.
 >
-> **Fiabilité des références agent.** Les chemins côté `embewi-agent-esp`
-> cités ici sont ceux nommés par le contrat lui-même (ex. `embewi_config.c`,
-> `esp_ota_*`) : ce repo n'est pas checké out à côté d'`embewi-core`, donc ces
-> chemins ne sont **pas vérifiés automatiquement** — à confirmer contre
-> `embewi-agent-esp` avant de s'appuyer dessus pour une modification.
+> **Fiabilité des références agent.** Colonne Agent auditée par lecture de
+> code dans `embewi-agent-esp` le **2026-07-27** (voir `tracabilite.md`) —
+> les chemins/lignes cités sont vérifiés à cette date, pas de garantie
+> au-delà (pas de vérification automatique/CI cross-repo). Une correction et
+> un écart pré-existant ont été trouvés à cet audit : voir « Écarts
+> complémentaires » dans `tracabilite.md`.

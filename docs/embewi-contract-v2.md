@@ -1247,10 +1247,12 @@ de données.
 
 > **Côté agent : tout le contrat MVP est implémenté.** Côté Core, le runtime
 > minimal (McuNode/McuDeployment/McuConfigMap, pull OCI/ORAS, heartbeat,
-> métriques) l'est également — détail dans `embewi-core-design.md`, écarts
-> encore ouverts (rétention de token, détection `heartbeat.ip`, découverte de
-> version d'API…) suivis dans `liaison/issues-cross-repo.md`. `McuDeploymentSet`
-> et le webhook de validation sémantique restent hors MVP (Annexe).
+> métriques) l'est également — détail dans `embewi-core-design.md`. Les 6
+> issues de la dernière revue de contrat (rétention de token, détection
+> `heartbeat.ip`, canal de détresse NTP, découverte de version d'API…) sont
+> **toutes terminées** (Core et agent) — voir `liaison/issues-cross-repo.md`.
+> `McuDeploymentSet` et le webhook de validation sémantique restent hors MVP
+> (Annexe).
 
 ---
 

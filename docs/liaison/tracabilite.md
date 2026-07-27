@@ -2,9 +2,11 @@
 
 Colonne **Core** vérifiée par lecture de code dans `embewi-core`, dernier
 audit complet **2026-07-23** (voir écarts complémentaires en bas de page).
-Colonne **Agent** limitée à ce que le contrat nomme déjà (fonctions ESP-IDF,
-fichiers cités en §10) — non vérifiée contre `embewi-agent-esp`, absent de ce
-workspace.
+Colonne **Agent** vérifiée par lecture de code dans `embewi-agent-esp`,
+audit complet **2026-07-27** (build dev + build prod compilés avec succès
+pour valider les lignes touchées). Une correction trouvée à cette occasion :
+la ligne §3 citait TWDT comme mécanisme de deadline `pending_verify` — le
+code utilise en réalité un `esp_timer` logiciel (corrigé ci-dessous).
 
 | Section contrat | Core (`embewi-core`) | Agent (`embewi-agent-esp`) | Statut |
 |---|---|---|---|
@@ -14,18 +16,18 @@ workspace.
 | §1a Enrôlement, identité device | `api/v1alpha1/mcunode_types.go:31-39` (`TokenRef`), `internal/controller/mcunode_controller.go` | Portail captif AP, NVS `embewi_prov` (mentionné §1a) | Core ✔ (nominal) |
 | §1a Rejet d'un `node_id` en double | ✔ (2026-07-25) `findNode` (`internal/heartbeat/server.go`) détecte >1 `McuNode` matchant `spec.nodeId`, refuse d'attacher le heartbeat à l'un d'eux (fail-safe, pas de pick silencieux du premier), émet un Event `DuplicateNodeID` sur chaque objet concerné. Pas de webhook d'unicité (validation a posteriori au heartbeat, pas à la création du McuNode) | — l'agent s'annonce, ne déduplique pas (attendu) | Core ✔ |
 | §2 États de l'agent | `internal/heartbeat/server.go` (`validNodeStates`, rejette en 400 tout `state` hors enum) | Machine d'état `booting/pending_verify/running/degraded/rollback/failed` — source de vérité côté agent | Core ✔ |
-| §3 Séquence OTA | `internal/controller/mcudeployment_controller.go:29` (`ConfirmTimeout`), `:74-114` (dispatch des phases), `:464-490` (`phaseActivating`) ; `internal/agent/client.go` (`OTAPrepare:175-188`, `OTAWrite`, `OTAActivate:367-379`) | `esp_ota_set_boot_partition`, `esp_ota_mark_app_valid_cancel_rollback`, TWDT (cités §3) | Core ✔ |
+| §3 Séquence OTA | `internal/controller/mcudeployment_controller.go:29` (`ConfirmTimeout`), `:74-114` (dispatch des phases), `:464-490` (`phaseActivating`) ; `internal/agent/client.go` (`OTAPrepare:175-188`, `OTAWrite`, `OTAActivate:367-379`) | ✔ (vérifié 2026-07-27) `esp_ota_set_boot_partition` (`main/embewi_ota.c:230`), `esp_ota_mark_app_valid_cancel_rollback` (`main/embewi_selfcheck.c:89`). ⚠ correction : le contrat cite un hardware watchdog (TWDT) pour la deadline `pending_verify` — l'agent utilise en réalité un `esp_timer` logiciel (`main/embewi_selfcheck.c:115-121`) → `esp_restart()` (`:51`), choisi précisément parce qu'il survit à une task qui hang (contrairement au TWDT qui watchdogue des tasks, pas un délai applicatif) | Core ✔ ; agent ✔ |
 | §4 Endpoints inbound `/info /health /config /reboot` | `internal/agent/client.go` (`GetInfo:127`, `GetHealth:145`, `GetConfig:317`, `PostConfig:331`, `PostReboot:348`) | Handlers HTTPS agent — non vérifiés depuis ce repo | Core ✔ (implémentés) ; ⚠ `GetHealth` n'est appelé **nulle part** hors tests (contrat le dit optionnel, donc pas bloquant) |
 | §4 `POST /ota/prepare`, `/ota/activate` | `internal/agent/client.go` (`OTAPrepare:175-188`, `OTAActivate:367-379`) ; mapping Events conforme (`mcudeployment_controller.go:390-404`) | — | Core ✔ |
 | §4 `PUT /ota/write` + Content-Range | ✔ (2026-07-27) `internal/agent/client.go` (`OTAWrite`/`putOTAChunk`) : chunke en plages de 64 KiB (`otaChunkSize`), une coupure réseau sur une plage retente jusqu'à 3 fois la même plage bufferisée (sans retransmettre les plages déjà confirmées, sans retoucher au flux OCI source), gère le resync 416 (`written` reporté par le device) en ré-émettant uniquement le reliquat de la plage courante | — | Core ✔ |
 | §4 `POST /token` (rotation) | ✔ `internal/controller/mcunode_controller.go` (`reconcileTokenRotation`, appelle `RotateToken()` tant que `previousToken` est présent) | reçoit et applique la rotation (mentionné §4) | Core ✔ |
-| §4 `api_versions` (issue 4, nouveau) | ✔ `internal/agent/client.go` (`InfoResponse.ApiVersions`, `NegotiateAPIVersion` — plus haute version commune, absent → `v1alpha1` supposé) ; `internal/controller/mcudeployment_controller.go` (`persistNodeInfo` négocie à chaque `GET /info`, stocke `McuNode.Status.ApiVersion`, échec → `fail("APIVersionUnsupported", …)` + Event) | ⬜ à émettre dans `GET /info` (non vérifié côté agent — le Core suppose `v1alpha1` en son absence, comportement conforme mais non testé en conditions réelles) | Core ✔ ; agent ⬜ |
+| §4 `api_versions` (issue 4, nouveau) | ✔ `internal/agent/client.go` (`InfoResponse.ApiVersions`, `NegotiateAPIVersion` — plus haute version commune, absent → `v1alpha1` supposé) ; `internal/controller/mcudeployment_controller.go` (`persistNodeInfo` négocie à chaque `GET /info`, stocke `McuNode.Status.ApiVersion`, échec → `fail("APIVersionUnsupported", …)` + Event) | ✔ (2026-07-27) `main/embewi_http.c:129` (`h_info`) émet `"api_versions":["v1alpha1"]` (`EMBEWI_API_VERSION`, `main/embewi_agent.h:8`) | Core ✔ ; agent ✔ |
 | §4 Rotation token — rétention `previousToken` (issue 1, nouveau) | ✔ `internal/heartbeat/server.go` (`validateToken` accepte `token`/`previousToken`, `clearPreviousToken` sur confirmation) ; `internal/controller/mcunode_controller.go` (`reconcileTokenRotation` rejoue `POST /token` tant que non confirmé). Déclencheur = écriture atomique `token`+`previousToken` dans le Secret par l'opérateur/GitOps (pas d'auto-génération périodique côté Core) | — (aucun changement d'ordre côté agent : reçoit toujours un seul `POST /token`) | Core ✔ |
 | §4 `POST /app/port`, `POST /tls/cert` | ✔ (2026-07-27) `internal/agent/client.go` : `PostAppPort` (valide 1024-65535 côté client avant l'appel), `PostTLSCert`. ⚠ aucun controller ne les appelle encore — pas de champ CRD portant le port applicatif désiré ni de `SecretRef` pour le cert TLS ; méthodes prêtes, réconciliation non câblée (décision de schéma à prendre) | — | Core ✔ (méthodes client) ; ⚠ réconciliation non câblée |
 | §4a Modèle de config en couches | `internal/controller/mcudeployment_controller.go:237-240` (limites 15/63 caractères validées avant push), `:254` (clés `_` filtrées) | `embewi_app_init` lit NVS au boot (cité §4a) | Core ✔ |
 | §4b Codes d'erreur → Events K8s | `internal/controller/mcudeployment_controller.go:390-404` (prepare refusé), `:427-441` (write refusé) (`Recorder.Event`, vrais Events K8s) | Émission des codes stables (contrat, table §4b) | Core ✔ pour prepare/write ; ✔ `ConfigMapNotFound` distinct de `ConfigInvalid` (`errConfigMapNotFound`, `configFailReason()`, 2026-07-25) |
 | §5 Heartbeat / logs | `internal/heartbeat/server.go` (`handleHeartbeat`, `HeartbeatPayload:62-81`), filtrage `temp_celsius=-127.0` (`:332`, `internal/metrics/metrics.go:140-142`) | `embewi_log_emit()`, SNTP au boot (cités §5) | Core ✔ |
-| §5 Canal de détresse NTP (issue 2, nouveau) | ✔ `internal/heartbeat/server.go` : `HeartbeatPayload.Reason`, `ready` forcé à `false` si `reason=="clock_unsynced"` (même si `state=running`+`ota_validated=true`), condition `Ready/ClockUnsynced` dédiée, `LastHeartbeat` mis à jour quand même (pas de silence, §2) | ⬜ à implémenter côté agent (bypass validité temporelle du cert Core tant que `!sntp_synced`, émission de `reason`) | Core ✔ ; agent ⬜ |
+| §5 Canal de détresse NTP (issue 2, nouveau) | ✔ `internal/heartbeat/server.go` : `HeartbeatPayload.Reason`, `ready` forcé à `false` si `reason=="clock_unsynced"` (même si `state=running`+`ota_validated=true`), condition `Ready/ClockUnsynced` dédiée, `LastHeartbeat` mis à jour quand même (pas de silence, §2) | ✔ (2026-07-27) `main/embewi_heartbeat.c:177` émet `reason:"clock_unsynced"` tant que `!embewi_time_is_set()` ; `:106-110` bascule `emit_to()` sur `embewi_tls_relaxed_post()` (nouveau fichier `main/embewi_tls_relaxed.c`) — mbedTLS bas niveau, `MBEDTLS_SSL_VERIFY_OPTIONAL` + inspection manuelle post-handshake : seuls `BADCERT_EXPIRED`/`BADCERT_FUTURE` tolérés, chaîne/CN restent bloquants (`embewi_ssl_get_verify_result`). Nécessaire car `esp_http_client`/esp-tls force `VERIFY_REQUIRED` dès qu'une CA est configurée, sans hook pour ne relâcher que la date. Contrepartie : `CONFIG_MBEDTLS_HAVE_TIME_DATE=y` activé en prod (`sdkconfig.defaults.prod:57`) — **écart pré-existant découvert pendant l'implémentation** : cette vérif était jusque-là silencieusement désactivée dans TOUS les états (comportement par défaut ESP-IDF), donc la vérification stricte post-synchro n'existait pas non plus avant ce correctif | Core ✔ ; agent ✔ |
 | §6 Idempotence (reprise sur crash Core, OTA) | `internal/controller/mcudeployment_controller.go:339-375` (`phasePreparing` relit `staged.state`), `:464-490` (`phaseActivating` anti-double-activate) | `staged` exposé par `GET /info` | Core ✔ |
 | §6 Idempotence config (`generation` vs `active_generation`) | ✔ (2026-07-25) `pushConfigIfNeeded` compare aussi `ActiveGeneration < Generation` quand le nvs est déjà conforme → `needsReboot=true` sans repush (`mcudeployment_controller.go:262-270`). `reconcileConfigOnly` reboote dans ce cas comme après un push classique. | — | Core ✔ |
 | §7 Politique de binding | `internal/controller/mcudeployment_controller.go:117-158` (`NoDeviceMatched`, `AmbiguousBinding`), `:165-179` (`checkNotBusy`, first-bound-wins) | — (résolution Core) | Core ✔ |
@@ -66,6 +68,25 @@ attaché), mais à corriger côté Core :
    ligne §4 ci-dessus. Tests : `TestOTAWrite_MultiChunk_*`,
    `TestOTAWrite_ChunkResync416_*`, `TestOTAWrite_ChunkStalls416_*`
    (`internal/agent/client_test.go`).
+
+## Écarts complémentaires identifiés à l'audit (2026-07-27, agent)
+
+Trouvés en vérifiant la colonne Agent contre `embewi-agent-esp` :
+
+1. ✔ (2026-07-27) Ligne §3 : le contrat cite TWDT (watchdog matériel), le
+   code utilise un `esp_timer` logiciel — corrigé ci-dessus (pas de travail
+   de code, doc seule ; le mécanisme réel est équivalent ou plus robuste,
+   cf. commentaire `embewi_selfcheck.c`).
+2. ✔ (2026-07-27) `CONFIG_MBEDTLS_HAVE_TIME_DATE` n'était activé dans aucun
+   des deux profils de build (`sdkconfig.defaults` / `sdkconfig.defaults.prod`)
+   — défaut ESP-IDF = désactivé. Conséquence : la validité temporelle
+   (`notBefore`/`notAfter`) du cert Core n'était vérifiée dans **aucun**
+   état, pas seulement pendant la fenêtre `clock_unsynced`. Activé en prod
+   en même temps que l'implémentation de l'issue 2 (`sdkconfig.defaults.prod:57`)
+   — sans quoi le canal de détresse n'aurait rien eu à « détresser » : la
+   vérification stricte qu'il est censé temporairement assouplir n'existait
+   pas. Pas d'entrée séparée dans `issues-cross-repo.md` : rattaché à
+   l'issue 2 (même ligne §5 ci-dessus), le correctif code est le même commit.
 
 ## Comment l'utiliser
 
