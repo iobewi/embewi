@@ -18,6 +18,15 @@ Kubernetes. Le système est fait de deux composants qui communiquent via un
 Contrat Core ↔ Agent <embewi-contract-v2>
 ```
 
+## Liaison Core ↔ Agent
+
+```{toctree}
+:maxdepth: 1
+:caption: Liaison
+
+liaison/index
+```
+
 ## Dépôts & docs composant
 
 - **Référence (ce dépôt)** — [`iobewi/embewi`](https://github.com/iobewi/embewi) :
@@ -28,5 +37,9 @@ Contrat Core ↔ Agent <embewi-contract-v2>
 - **Core** — [`iobewi/embewi-core`](https://github.com/iobewi/embewi-core) :
   runtime Kubernetes. Design des contrôleurs dans son repo.
 
-> Principe : le **contrat** (transverse, versionné) vit ici ; la doc **propre à
-> chaque composant** vit avec son code, pour ne pas diverger.
+> Principe : le **contrat** couvre les interfaces stables **inter-composants
+> et externes** (protocole Core↔Agent, mais aussi les interfaces consommées
+> par de l'outillage tiers — ex. noms de métriques Prometheus §8b, gelés au
+> même titre qu'un champ JSON). La doc **propre à l'implémentation** d'un
+> composant (design interne, détails de build) vit avec son code, pour ne pas
+> diverger.

@@ -87,6 +87,18 @@ Défense en profondeur réseau (opt-in production, §8) :
   autorisé avant tout handler (`open_fn` httpd). CIDR configurable via McuConfigMap
   `allowed_cidr` — utiliser le CIDR du cluster plutôt que l'IP exacte du Pod Core.
 
+**Rayon d'action d'un token compromis (NORMATIF).** Le token par node
+n'autorise pas seulement les appels inbound sur son device. Via
+`heartbeat.ip`, il pilote aussi `EndpointSlice.endpoints[].addresses` (§8) —
+un attaquant en possession d'un token peut donc émettre un heartbeat déclarant
+une `ip` arbitraire et détourner tout le trafic du `Service` vers un endpoint
+qu'il contrôle, **sans jamais toucher au device physique** (qui continue en
+parallèle d'émettre ses propres heartbeats — un battement d'adresse plutôt
+qu'un état franc). Cohérent avec le modèle `token == identité`, mais le rayon
+d'action réel dépasse « appeler les endpoints inbound de ce device » : il
+inclut les **consommateurs** du workload routé par ce `Service`. Détection
+côté Core, cf. §8.
+
 > **Dev vs Prod.** Ces exigences sont des opérations eFuse **irréversibles** :
 > elles ne s'activent **pas en dev**. Elles sont portées par un profil de build
 > séparé et opt-in (`sdkconfig.defaults.prod` + `CONFIG_EMBEWI_VERIFY_CORE_CERT`
@@ -253,6 +265,7 @@ Identité matérielle **+ slot stagé** (clé de l'idempotence, cf. §6).
 ```json
 {
   "node_id": "embewi-a1b2c3",
+  "api_versions": ["v1alpha1"],
   "chip": "esp32",
   "idf_version": "5.2",
   "flash_size": 4194304,
@@ -278,6 +291,20 @@ Identité matérielle **+ slot stagé** (clé de l'idempotence, cf. §6).
 
 `staged.state` ∈ `none | written | activating`. Quand aucun slot n'est stagé :
 `"staged": { "state": "none" }`.
+
+**Découverte de version d'API (NORMATIF).** `api_versions` liste les versions
+de protocole `/v1alpha1`-style supportées par l'agent, la plus élevée en
+premier. Règles :
+
+```text
+- Le Core choisit la version la plus élevée qu'il supporte ET que le device
+  annonce dans api_versions.
+- Champ absent (device antérieur à cette révision du contrat) → v1alpha1
+  est supposé.
+- GET /v1alpha1/info reste joignable et stable dans TOUTES les versions
+  futures du protocole — c'est le point d'entrée de la négociation, gelé
+  par convention (même si son contenu évolue par ailleurs).
+```
 
 ### `GET /v1alpha1/health`
 
@@ -461,6 +488,14 @@ Réponse :
 une clé au défaut build, pousser la valeur `""` (chaîne vide) — l'agent
 efface la clé NVS.
 
+**Restriction (NORMATIF).** La chaîne vide est **réservée** comme sentinelle
+de reset : elle ne peut pas être stockée comme valeur légitime d'une clé. Une
+app qui a besoin de distinguer « clé absente » de « clé présente mais
+sémantiquement vide » (préfixe optionnel, suffixe de topic…) doit encoder ce
+cas par une sentinelle applicative (ex. une valeur dédiée hors alphabet
+attendu), pas par `""`. `DELETE /config/{key}` — qui lèverait cette
+restriction — reste **[RÉSERVE]** (Annexe).
+
 ### `POST /v1alpha1/app/port`
 
 Reconfigure le port TCP du service applicatif embarqué (ex. serveur REST de
@@ -520,7 +555,8 @@ Réponse :
 Protocole de rotation sans coupure (responsabilité Core) :
 
 ```text
-1. Core génère newToken, met à jour le McuSecret.
+1. Core génère newToken, conserve l'ancien (McuSecret.previousToken = oldToken)
+   et met à jour McuSecret.token = newToken.
 2. Core: POST /token (Authorization: Bearer <oldToken>) {"token":"<newToken>"}
 3. device persiste newToken, répond 200, puis n'accepte plus que newToken.
 4. Core bascule sur newToken pour tous les appels suivants.
@@ -532,10 +568,33 @@ réponse est `500` (`{"error":"nvs_write_failed"}`) — pas de fenêtre où aucu
 token n'est valide. Un token vide (`""`) est **refusé** (`400`) : on ne
 désactive pas l'auth par rotation (utiliser le portail pour un reset complet).
 
-> **[RÉSERVE]** Rotation à double token (overlap window où ancien ET nouveau
-> sont acceptés) pour tolérer un crash Core entre l'étape 3 et 4. Hors MVP : le
-> Core ré-applique simplement la rotation si le heartbeat reste authentifié à
-> l'ancien token au-delà d'un délai.
+**Rétention côté Core pendant la fenêtre de rotation (NORMATIF).**
+La mitigation « le Core ré-applique la rotation si le heartbeat reste
+authentifié à l'ancien token » ne fonctionne que si le Core **peut encore
+authentifier** ce heartbeat — donc s'il conserve l'ancien token quelque part.
+Le Core **DOIT** donc retenir `McuSecret.previousToken` tant que l'étape 3
+n'est pas confirmée :
+
+```text
+- premier heartbeat authentifié avec newToken → previousToken effacé
+  (rotation confirmée, plus besoin de la valeur précédente).
+- heartbeat authentifié avec previousToken, reçu après l'étape 2
+  → signale que l'étape 3 n'a pas abouti côté device : le Core RÉ-APPLIQUE
+    l'étape 2 (POST /token avec previousToken comme Bearer, même newToken).
+- aucune confirmation avant un délai de convergence → alerte (rotation
+  bloquée), previousToken conservé pour ne pas perdre l'accès inbound.
+```
+
+Cas explicitement couvert — **crash du Core entre l'étape 1 et l'étape 2** :
+au redémarrage, `McuSecret` contient déjà `token=newToken` **et**
+`previousToken=oldToken`. Le Core peut ré-émettre l'étape 2 avec
+`previousToken`, sans reprovisioning physique. Sans cette rétention, le
+device — qui n'a jamais reçu `newToken` — devient définitivement injoignable
+en inbound (seul recours : portail captif, accès physique).
+
+Un heartbeat authentifié avec `previousToken` reste **ACCEPTÉ** pendant cette
+fenêtre : ce n'est pas une anomalie, c'est le signal attendu tant que l'étape 3
+n'a pas convergé.
 
 ### `POST /v1alpha1/reboot`
 
@@ -679,6 +738,39 @@ authentifié, §1) contrôle les dates de validité du cert ; sans horloge juste
 handshake TLS échoue. L'agent synchronise donc l'heure **avant** d'ouvrir ses
 flux sortants. NTP injoignable en prod = pas de heartbeat/log TLS tant que
 l'heure n'est pas posée (fail-closed assumé).
+
+**Mode de panne NTP → silence (NORMATIF).** Ce fail-closed produit exactement
+ce que la règle d'or §2 cherche à bannir : un device qui devient silencieux,
+indistinguable côté Core d'un crash, d'un débranchement ou d'une panne réseau
+(`Ready/HeartbeatTimeout`). Le mode de panne est de plus **corrélé** : une
+panne NTP peut toucher toute la flotte simultanément et ressembler à une panne
+massive de devices.
+
+Mitigation retenue — **canal de détresse dégradé** : tant que l'horloge n'est
+pas posée, l'agent est autorisé à ouvrir son flux sortant (heartbeat/logs) sur
+TLS **sans vérifier la validité temporelle** (`notBefore`/`notAfter`) du
+certificat du Core. Le chiffrement du canal reste actif ; seule la fenêtre de
+validité temporelle est suspendue — la vérification de la chaîne/du CN du
+certificat (`CONFIG_EMBEWI_VERIFY_CORE_CERT`) reste en vigueur. Le heartbeat
+émis dans cet état porte un indicateur dédié :
+
+```json
+{ "node_id": "embewi-a1b2c3", "ts": 0, "state": "running", "reason": "clock_unsynced" }
+```
+
+Règles associées :
+
+```text
+- `reason: "clock_unsynced"` n'apparaît que tant que SNTP n'a pas convergé ;
+  dès la synchro, l'agent repasse en vérification stricte de la validité
+  temporelle et cesse d'émettre ce champ.
+- Ce canal ne dispense pas de la vérification de la chaîne de confiance/CN du
+  certificat — seule la validité temporelle est tolérée.
+- Le Core NE DOIT PAS considérer `Ready=True` sur la seule foi d'un heartbeat
+  `clock_unsynced` : ce n'est qu'un signal de diagnostic (« horloge non
+  synchronisée », distinct d'un vrai timeout), pas une confirmation
+  opérationnelle complète.
+```
 
 **Schéma extensible (télémétrie → métriques).** Le heartbeat est un objet JSON
 **ouvert** : le Core doit ignorer les champs inconnus (forward-compatibility).
@@ -928,6 +1020,19 @@ Le Core **ne marque jamais** un déploiement `Ready` avant la confirmation agent
 (`state=running` + `ota_validated=true` + bon `deployment_id`). Le healthcheck
 devient routage, gratuitement.
 
+**Détection de divergence `heartbeat.ip` (NORMATIF).** Le Core compare
+`heartbeat.ip` à l'IP source TCP de la requête. En cas de divergence, il émet
+l'Event Kubernetes `HeartbeatIPMismatch` (Warning) — sans rejeter le
+heartbeat ni bloquer la mise à jour de l'`EndpointSlice` : un proxy ou un
+routage asymétrique légitime peut produire cette divergence (cf. §1, rayon
+d'action d'un token compromis). C'est une détection, pas un blocage.
+
+Restriction CIDR de `heartbeat.ip` (optionnelle, **hors MVP**) : borner
+`heartbeat.ip` au CIDR de management (même clé `allowed_cidr` que §1) et
+rejeter (`400`) un heartbeat hors CIDR bornerait la redirection au subnet
+isolé. Non retenue pour le MVP — à activer si le risque de redirection de
+trafic est jugé prioritaire pour un déploiement donné.
+
 **Sécurité réseau (défense en profondeur).**
 Le subnet de management des ESP doit être isolé sur un VLAN dédié et protégé
 par une NetworkPolicy K8s (egress vers le subnet ESP réservé aux Pods Core).
@@ -1012,6 +1117,13 @@ version API. Le Core les mappe en Events Kubernetes lisibles (§4b).
 ---
 
 ## 8b. Pipeline métriques **[NORMATIF]**
+
+Section Core-only (l'agent ignore l'existence de Prometheus) mais gardée dans
+le contrat transverse : les noms de gauges sont une **interface publique**
+consommée par de l'outillage externe (dashboards, alertes) — au même titre
+qu'un champ JSON du protocole, ils méritent d'être gelés à un seul endroit
+stable plutôt que dans la doc d'implémentation d'un composant (cf. principe
+en page d'accueil).
 
 Le Core agrège les heartbeats et expose un endpoint Prometheus `/metrics` sur
 un port dédié (ex. `:9090`). Chaque heartbeat reçu met à jour les gauges du
@@ -1114,7 +1226,7 @@ de données.
 5. McuConfigMap — config runtime (§4a §7a)        ✔ implémenté
    5a. Agent : embewi_config.c + GET/POST /config + POST /reboot  ✔
    5b. Agent : apps lisent NVS au boot (gpio_button, gpio_ws2812)  ✔
-   5c. Core  : McuConfigMap CRD + réconciliation                  ← prochaine étape
+   5c. Core  : McuConfigMap CRD + réconciliation                  ✔ implémenté
 6. Streaming logs ESP_LOGx → WebSocket /v1alpha1/logs            ✔ implémenté
 7. Enrôlement + identité (§1a)                                   ✔ provisioning fait
                                                                    (modèle Core à figer)
@@ -1128,12 +1240,17 @@ de données.
     - Secure Boot v2 + Flash Enc + NVS flash-enc (profil prod)   ✔ build-validé
     - portail provisioning HTTPS + fenêtre AP bornée (§1a)       ✔ implémenté
     - vérif cert Core sortant + token constant-time (§1)         ✔ implémenté
-14. Runtime Core minimal                                         ← prochaine étape
+14. Runtime Core minimal                                         ✔ implémenté
+    (contrôleurs McuNode/McuDeployment, pull OCI/ORAS, heartbeat,
+    métriques Prometheus — cf. embewi-core-design.md)
 ```
 
-> **Côté agent : tout le contrat MVP est implémenté.** Les sections restantes
-> (`McuConfigMap` CRD, `McuDeploymentSet`, webhook de validation, runtime Core)
-> sont portées par le repo Core — voir `embewi-core-design.md`.
+> **Côté agent : tout le contrat MVP est implémenté.** Côté Core, le runtime
+> minimal (McuNode/McuDeployment/McuConfigMap, pull OCI/ORAS, heartbeat,
+> métriques) l'est également — détail dans `embewi-core-design.md`, écarts
+> encore ouverts (rétention de token, détection `heartbeat.ip`, découverte de
+> version d'API…) suivis dans `liaison/issues-cross-repo.md`. `McuDeploymentSet`
+> et le webhook de validation sémantique restent hors MVP (Annexe).
 
 ---
 
