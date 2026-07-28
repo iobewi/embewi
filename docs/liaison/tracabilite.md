@@ -129,6 +129,48 @@ Token Bearer`, `§1a Enrôlement`, `§2 États`, `§4 endpoints /info /health
 `§5 heartbeat/logs`, `§6 idempotence`, `§7a McuConfigMap`, `§8 EndpointSlice
 ip`, `§1 digest incrémental agent`.
 
+## Écarts complémentaires identifiés à l'audit (2026-07-28, manifestes K8s Core)
+
+Cette matrice couvre la conformité **contrat ↔ code Go**, mais pas les
+manifestes K8s eux-mêmes (`config/`) — angle mort qui a laissé passer trois
+bugs indépendants du code Go, invisibles aux tests (le fake client
+`controller-runtime` ne fait pas de *pruning* de schéma CRD comme un vrai
+apiserver) :
+
+1. ✔ **CRD `mcunodes` : `spec.tokenRef` absent du schéma OpenAPI**
+   (`config/crd/bases/embewi.io_mcunodes.yaml`). Un CRD structural sans
+   `x-kubernetes-preserve-unknown-fields` fait *pruner* silencieusement par
+   l'apiserver tout champ non déclaré à chaque écriture — `tokenRef` aurait
+   été supprimé de tout McuNode appliqué sur un vrai cluster, cassant
+   l'auth/la rotation de token/le push TLS cert (tout ce qui dépend de
+   `Spec.TokenRef`). Invisible dans nos tests car le fake client ne
+   prune pas. Corrigé, ainsi que `status.configGeneration`/`tempCelsius`/
+   `taskHwmMin` (même CRD, même cause).
+2. ✔ **CRD `mcudeployments` : `spec.configMapRef` absent du schéma** —
+   même mécanisme, aurait cassé silencieusement toute la fonctionnalité
+   McuConfigMap (§7a) en cluster réel malgré un code Core entièrement
+   fonctionnel et testé. Corrigé.
+3. ✔ **RBAC** (`config/rbac/role.yaml`) : `secrets` n'avait que
+   `get/list/watch` — `clearPreviousToken` (confirmation de rotation, §4)
+   patch le Secret, aurait échoué en 403.
+4. ✔ **ServiceMonitor** (`config/monitoring/servicemonitor.yaml`) :
+   namespace `embewi` au lieu de `embewi-system` (Deployment/Service/RBAC),
+   et aucun Service n'exposait de port nommé `metrics` — le pipeline §8b,
+   pourtant entièrement fonctionnel côté code, n'aurait rien eu à scraper.
+
+Vérifié par comparaison systématique champ-à-champ (script Python, tags JSON
+Go vs propriétés OpenAPI des 3 CRD) — les trois schémas correspondent
+maintenant exactement aux types Go (hors champs de machinerie K8s
+`metadata`/`items` et champs internes à `metav1.Condition`, absents des
+structs Go top-level mais présents dans le schéma imbriqué `conditions[]`).
+
+**Recommandation** : ces CRD sont maintenues à la main (`controller-gen`
+indisponible dans cet environnement — pas d'accès réseau pour
+`go get sigs.k8s.io/controller-tools`). Regénérer via `make manifests` dès
+que l'outil est disponible, et traiter cette page comme la référence de
+vérité en attendant plutôt que de re-dériver champ par champ à chaque
+changement de type Go.
+
 ## Comment l'utiliser
 
 - Avant de merger un changement de contrat marqué `[NORMATIF]` : chercher la
