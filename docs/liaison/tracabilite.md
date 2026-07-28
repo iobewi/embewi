@@ -3,8 +3,10 @@
 Colonne **Core** vérifiée par lecture de code dans `embewi-core`, dernier
 audit complet **2026-07-23** (voir écarts complémentaires en bas de page).
 Colonne **Agent** vérifiée par lecture de code dans `embewi-agent-esp`
-@ [`4d0a129`](https://github.com/iobewi/embewi-agent-esp/commit/4d0a129f2fa7e454bab633f31a2c047c9b7f16b6)
-(pinné — re-vérifier cette colonne si l'agent avance sans mise à jour ici).
+@ [`09906ec`](https://github.com/iobewi/embewi-agent-esp/commit/09906ec5ef97eefa86e8eb4900b97c447ecd9e92)
+(pinné — re-vérifier cette colonne si l'agent avance sans mise à jour ici ;
+seul commit depuis `4d0a129` : bump de leur propre submodule `contract`,
+aucun changement de code agent).
 Trois passes :
 - **2026-07-27** (ciblée sur les issues 1-4 + §3) : build dev + build prod
   compilés avec succès pour valider les lignes touchées. Correction : la
