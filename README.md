@@ -33,3 +33,10 @@ Prérequis une fois : **Settings → Pages → Source = GitHub Actions**.
 pip install -r docs/requirements.txt
 sphinx-build -b html -W docs docs/_build/html
 ```
+
+## Licence, sécurité, changelog
+
+- Licence : MIT — voir [LICENSE](LICENSE).
+- Vulnérabilité de sécurité à signaler ? Voir [SECURITY.md](SECURITY.md)
+  (divulgation privée, pas d'issue publique).
+- Historique des versions : [CHANGELOG.md](CHANGELOG.md).
