@@ -3,12 +3,13 @@
 Colonne **Core** vérifiée par lecture de code dans `embewi-core`, dernier
 audit complet **2026-07-23** (voir écarts complémentaires en bas de page).
 Colonne **Agent** vérifiée par lecture de code dans `embewi-agent-esp`
-@ [`f173003`](https://github.com/iobewi/embewi-agent-esp/commit/f173003)
-(pinné — re-vérifier cette colonne si l'agent avance sans mise à jour ici ;
-commits depuis `4d0a129` : bump submodule `contract`, `SECURITY.md`/
-`CHANGELOG.md`/renvoi README, CI tests host (`.github/workflows/tests.yml`),
-note de clarification versioning dans `CHANGELOG.md` — aucun changement de
-code agent).
+@ [`v1.0.0`](https://github.com/iobewi/embewi-agent-esp/releases/tag/v1.0.0)
+(commit [`a5633ac`](https://github.com/iobewi/embewi-agent-esp/commit/a5633ac) —
+pinné sur le tag de release, pas sur `main`, pour rester exact après le
+passage en v1.0.0 des trois dépôts. Un commit `f173003` existe après ce tag
+sur `main` — note de clarification versioning dans `CHANGELOG.md`
+uniquement, aucun changement de code — mais le pin ci-dessus référence
+délibérément `v1.0.0`, pas `main`, pour rester cohérent avec le tag).
 Trois passes :
 - **2026-07-27** (ciblée sur les issues 1-4 + §3) : build dev + build prod
   compilés avec succès pour valider les lignes touchées. Correction : la
