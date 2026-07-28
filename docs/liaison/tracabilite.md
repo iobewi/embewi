@@ -3,23 +3,25 @@
 Colonne **Core** vérifiée par lecture de code dans `embewi-core`, dernier
 audit complet **2026-07-23** (voir écarts complémentaires en bas de page).
 Colonne **Agent** vérifiée par lecture de code dans `embewi-agent-esp`
-@ [`467feb3`](https://github.com/iobewi/embewi-agent-esp/commit/467feb3886a0f16d4c6ad2f42c19f51fdd477ca8)
+@ [`4d0a129`](https://github.com/iobewi/embewi-agent-esp/commit/4d0a129f2fa7e454bab633f31a2c047c9b7f16b6)
 (pinné — re-vérifier cette colonne si l'agent avance sans mise à jour ici).
-Deux passes :
+Trois passes :
 - **2026-07-27** (ciblée sur les issues 1-4 + §3) : build dev + build prod
   compilés avec succès pour valider les lignes touchées. Correction : la
   ligne §3 citait TWDT (watchdog matériel) pour la deadline `pending_verify`
   — le code utilise en réalité un `esp_timer` logiciel.
 - **2026-07-28** (balayage complet des lignes restantes, seule la colonne
   Agent était encore non vérifiée / recopiée du texte du contrat). Un écart
-  trouvé : `idf_incompatible` (table §4b) n'est **jamais émis** —
-  `idf_version` est parsé depuis `/ota/prepare` mais jamais comparé
-  (`embewi_ota_prepare`, `main/embewi_ota.c:103-123`) ; seuls
-  `chip_mismatch`/`layout_mismatch`/`busy`/`size_too_large` sont
-  atteignables. Non bloquant (le device refusera quand même un binaire
-  incompatible au flash), mais un firmware compilé pour la mauvaise version
-  IDF ne sera pas rejeté avec le bon diagnostic au moment prévu par le
-  contrat.
+  trouvé : `idf_incompatible` (table §4b) jamais émis — `idf_version` parsé
+  depuis `/ota/prepare` mais jamais comparé.
+- **2026-07-28, correctif** : `idf_incompatible` implémenté côté agent
+  (`embewi_idf_version_compatible`, `main/embewi_parse.c:131-137` — compare
+  le major IDF déclaré à `ESP_IDF_VERSION_MAJOR` du device, fail-safe sur
+  format invalide), câblé dans `embewi_ota_prepare` (`main/embewi_ota.c:117-119`).
+  Le Core mappait déjà `idf_incompatible` → Event `OTARejectedIdf` depuis le
+  début (jamais atteint faute d'émission agent) — boucle fermée sans rien à
+  toucher côté Core. Tests : `test_idf_version_compatible`
+  (`test/host/test_parse.c`, +8 assertions, 123 au total, vérifiées en local).
 
 | Section contrat | Core (`embewi-core`) | Agent (`embewi-agent-esp`) | Statut |
 |---|---|---|---|
@@ -31,14 +33,14 @@ Deux passes :
 | §2 États de l'agent | `internal/heartbeat/server.go` (`validNodeStates`, rejette en 400 tout `state` hors enum) | ✔ `main/embewi_agent.h:17-22` (enum), transitions dans `main/embewi_selfcheck.c` : `:71-77` (self-check KO → `EMBEWI_ROLLBACK` → `esp_ota_mark_app_invalid_rollback_and_reboot`, ou `EMBEWI_FAILED` si le rollback échoue), `:89-92` (self-check OK → `esp_ota_mark_app_valid_cancel_rollback` → `EMBEWI_RUNNING`) | Core ✔ ; agent ✔ |
 | §3 Séquence OTA | `internal/controller/mcudeployment_controller.go:29` (`ConfirmTimeout`), `:74-114` (dispatch des phases), `:464-490` (`phaseActivating`) ; `internal/agent/client.go` (`OTAPrepare:175-188`, `OTAWrite`, `OTAActivate:367-379`) | ✔ (vérifié 2026-07-27) `esp_ota_set_boot_partition` (`main/embewi_ota.c:230`), `esp_ota_mark_app_valid_cancel_rollback` (`main/embewi_selfcheck.c:89`). ⚠ correction : le contrat cite un hardware watchdog (TWDT) pour la deadline `pending_verify` — l'agent utilise en réalité un `esp_timer` logiciel (`main/embewi_selfcheck.c:115-121`) → `esp_restart()` (`:51`), choisi précisément parce qu'il survit à une task qui hang (contrairement au TWDT qui watchdogue des tasks, pas un délai applicatif) | Core ✔ ; agent ✔ |
 | §4 Endpoints inbound `/info /health /config /reboot` | `internal/agent/client.go` (`GetInfo:127`, `GetHealth:145`, `GetConfig:317`, `PostConfig:331`, `PostReboot:348`) | ✔ `main/embewi_http.c` : `h_info:113-145`, `h_health:148-162`, `h_config_get:441-458`, `h_config_post:472-497`, `h_reboot:500-507` — routes enregistrées `:572-586` | Core ✔ (implémentés) ; ⚠ `GetHealth` n'est appelé **nulle part** côté Core hors tests (contrat le dit optionnel, donc pas bloquant) ; agent ✔ |
-| §4 `POST /ota/prepare`, `/ota/activate` | `internal/agent/client.go` (`OTAPrepare:175-188`, `OTAActivate:367-379`) ; mapping Events conforme (`mcudeployment_controller.go:390-404`) | ✔ `main/embewi_http.c` (`h_ota_prepare:165-192`, `h_ota_activate:510-546`) ; logique de compat dans `main/embewi_ota.c:103-123` (`embewi_ota_prepare` — chip/layout/size). ⚠ `idf_incompatible` jamais émis, cf. note d'audit 2026-07-28 en tête de page | Core ✔ ; agent ✔ (sauf `idf_incompatible`) |
+| §4 `POST /ota/prepare`, `/ota/activate` | `internal/agent/client.go` (`OTAPrepare:175-188`, `OTAActivate:367-379`) ; mapping Events conforme (`mcudeployment_controller.go:390-404`) | ✔ `main/embewi_http.c` (`h_ota_prepare:165-192`, `h_ota_activate:510-546`) ; logique de compat dans `main/embewi_ota.c:103-126` (`embewi_ota_prepare` — chip/layout/idf/size, `idf_incompatible` via `embewi_idf_version_compatible` depuis 2026-07-28) | Core ✔ ; agent ✔ |
 | §4 `PUT /ota/write` + Content-Range | ✔ (2026-07-27) `internal/agent/client.go` (`OTAWrite`/`putOTAChunk`) : chunke en plages de 64 KiB (`otaChunkSize`), une coupure réseau sur une plage retente jusqu'à 3 fois la même plage bufferisée (sans retransmettre les plages déjà confirmées, sans retoucher au flux OCI source), gère le resync 416 (`written` reporté par le device) en ré-émettant uniquement le reliquat de la plage courante | ✔ `main/embewi_http.c:199-288` (`h_ota_write` : lit `Content-Range`, décide BEGIN/RESYNC/CONTINUE) ; logique pure testée sur host dans `main/embewi_parse.c:120-128` (`embewi_ota_plan`, `embewi_ota_is_final`) — handle OTA + SHA-256 incrémental en statiques, survivent à une déconnexion TCP | Core ✔ ; agent ✔ |
 | §4 `POST /token` (rotation) | ✔ `internal/controller/mcunode_controller.go` (`reconcileTokenRotation`, appelle `RotateToken()` tant que `previousToken` est présent) | ✔ `main/embewi_http.c:408-438` (`h_token`) — commit NVS avant la réponse, bascule runtime immédiate (`authorized()` exige le nouveau token dès la réponse envoyée) | Core ✔ ; agent ✔ |
 | §4 `api_versions` (issue 4, nouveau) | ✔ `internal/agent/client.go` (`InfoResponse.ApiVersions`, `NegotiateAPIVersion` — plus haute version commune, absent → `v1alpha1` supposé) ; `internal/controller/mcudeployment_controller.go` (`persistNodeInfo` négocie à chaque `GET /info`, stocke `McuNode.Status.ApiVersion`, échec → `fail("APIVersionUnsupported", …)` + Event) | ✔ (2026-07-27) `main/embewi_http.c:129` (`h_info`) émet `"api_versions":["v1alpha1"]` (`EMBEWI_API_VERSION`, `main/embewi_agent.h:8`) | Core ✔ ; agent ✔ |
 | §4 Rotation token — rétention `previousToken` (issue 1, nouveau) | ✔ `internal/heartbeat/server.go` (`validateToken` accepte `token`/`previousToken`, `clearPreviousToken` sur confirmation) ; `internal/controller/mcunode_controller.go` (`reconcileTokenRotation` rejoue `POST /token` tant que non confirmé). Déclencheur = écriture atomique `token`+`previousToken` dans le Secret par l'opérateur/GitOps (pas d'auto-génération périodique côté Core) | — (aucun changement d'ordre côté agent : reçoit toujours un seul `POST /token`) | Core ✔ |
 | §4 `POST /app/port`, `POST /tls/cert` | ✔ (2026-07-27) `internal/agent/client.go` : `PostAppPort` (valide 1024-65535 côté client avant l'appel), `PostTLSCert`. ⚠ aucun controller ne les appelle encore — pas de champ CRD portant le port applicatif désiré ni de `SecretRef` pour le cert TLS ; méthodes prêtes, réconciliation non câblée (décision de schéma à prendre) | ✔ `main/embewi_http.c` : `h_app_port:291-316` (valide 1024-65535, sauvegarde NVS, redémarre le service app immédiatement sans reboot device) ; `h_tls_cert:344-402` (accepte `cert_pem`/`key_pem`, désescape les `\n` littéraux, sauvegarde NVS, effectif au prochain `embewi_http_start()`) | Core ✔ (méthodes client) ; agent ✔ (handlers prêts) ; ⚠ réconciliation Core non câblée |
 | §4a Modèle de config en couches | `internal/controller/mcudeployment_controller.go:237-240` (limites 15/63 caractères validées avant push), `:254` (clés `_` filtrées) | ✔ `main/embewi_config.c` : `embewi_cfg_boot_init:29-42` (snapshot NVS figé au boot = config "active"), `embewi_cfg_write:71-84` (`""` efface la clé — reset au défaut build, cf. §4a NORMATIF), `embewi_cfg_bump_generation:88-101` ; filtrage clés `_*` côté agent dans `main/embewi_http.c:463-469` (`cfg_set_cb`) — symétrique au filtrage Core | Core ✔ ; agent ✔ |
-| §4b Codes d'erreur → Events K8s | `internal/controller/mcudeployment_controller.go:390-404` (prepare refusé), `:427-441` (write refusé) (`Recorder.Event`, vrais Events K8s) | ✔ Codes émis conformes à la table §4b : `chip_mismatch`/`layout_mismatch`/`busy`/`size_too_large` (`main/embewi_ota.c:110-118`), `digest_mismatch`/`write_failed`/`ota_begin_failed`/`range_mismatch` (`main/embewi_http.c:216-280`). ⚠ `idf_incompatible` absent (cf. note d'audit 2026-07-28) | Core ✔ pour prepare/write ; ✔ `ConfigMapNotFound` distinct de `ConfigInvalid` (`errConfigMapNotFound`, `configFailReason()`, 2026-07-25) ; agent ✔ sauf `idf_incompatible` |
+| §4b Codes d'erreur → Events K8s | `internal/controller/mcudeployment_controller.go:390-404` (prepare refusé), `:427-441` (write refusé) (`Recorder.Event`, vrais Events K8s) | ✔ Codes émis conformes à la table §4b : `chip_mismatch`/`layout_mismatch`/`idf_incompatible`/`busy`/`size_too_large` (`main/embewi_ota.c:110-121`), `digest_mismatch`/`write_failed`/`ota_begin_failed`/`range_mismatch` (`main/embewi_http.c:216-280`) | Core ✔ pour prepare/write ; ✔ `ConfigMapNotFound` distinct de `ConfigInvalid` (`errConfigMapNotFound`, `configFailReason()`, 2026-07-25) ; agent ✔ — tous les codes couverts |
 | §5 Heartbeat / logs | `internal/heartbeat/server.go` (`handleHeartbeat`, `HeartbeatPayload:62-81`), filtrage `temp_celsius=-127.0` (`:332`, `internal/metrics/metrics.go:140-142`) | ✔ `main/embewi_heartbeat.c` : `heartbeat_task:152-181` (POST toutes les 5 s, tous les champs requis + optionnels — `temp_celsius` sentinelle `-127.0f` si capteur indispo, `:65-69`), `embewi_log_emit:189-197` (POST `/v1alpha1/logs`), `main/embewi_time.c` (SNTP) | Core ✔ ; agent ✔ |
 | §5 Canal de détresse NTP (issue 2, nouveau) | ✔ `internal/heartbeat/server.go` : `HeartbeatPayload.Reason`, `ready` forcé à `false` si `reason=="clock_unsynced"` (même si `state=running`+`ota_validated=true`), condition `Ready/ClockUnsynced` dédiée, `LastHeartbeat` mis à jour quand même (pas de silence, §2) | ✔ (2026-07-27) `main/embewi_heartbeat.c:177` émet `reason:"clock_unsynced"` tant que `!embewi_time_is_set()` ; `:106-110` bascule `emit_to()` sur `embewi_tls_relaxed_post()` (nouveau fichier `main/embewi_tls_relaxed.c`) — mbedTLS bas niveau, `MBEDTLS_SSL_VERIFY_OPTIONAL` + inspection manuelle post-handshake : seuls `BADCERT_EXPIRED`/`BADCERT_FUTURE` tolérés, chaîne/CN restent bloquants (`embewi_ssl_get_verify_result`). Nécessaire car `esp_http_client`/esp-tls force `VERIFY_REQUIRED` dès qu'une CA est configurée, sans hook pour ne relâcher que la date. Contrepartie : `CONFIG_MBEDTLS_HAVE_TIME_DATE=y` activé en prod (`sdkconfig.defaults.prod:57`) — **écart pré-existant découvert pendant l'implémentation** : cette vérif était jusque-là silencieusement désactivée dans TOUS les états (comportement par défaut ESP-IDF), donc la vérification stricte post-synchro n'existait pas non plus avant ce correctif. **Portée limitée, assumée** : le canal de détresse couvre le heartbeat et `embewi_log_emit()` (events OTA/lifecycle via HTTPS, tous deux via `emit_to()`) mais **pas** le streaming `ESP_LOGx` → WebSocket (`embewi_log.c`, `esp_websocket_client`) — pas de hook `VERIFY_OPTIONAL` équivalent côté client WS, et ce flux est déjà best-effort/lossy par conception (cf. commentaire en tête de `embewi_log.c`). Le heartbeat (§2, jamais silencieux) est garanti ; ce flux logs, non, pendant la fenêtre `clock_unsynced` | Core ✔ ; agent ✔ (portée : heartbeat + logs HTTPS, pas le flux WS) |
 | §6 Idempotence (reprise sur crash Core, OTA) | `internal/controller/mcudeployment_controller.go:339-375` (`phasePreparing` relit `staged.state`), `:464-490` (`phaseActivating` anti-double-activate) | ✔ `staged` exposé par `h_info` (`main/embewi_http.c:113-145`, lu via `embewi_staged_load`, `main/embewi_ota.c:30`) — `none/written/activating` conformes | Core ✔ ; agent ✔ |
@@ -107,18 +109,15 @@ Trouvé en finissant la vérification des lignes de la colonne Agent restées
 non vérifiées après la passe ciblée du 2026-07-27 (comparaison ligne à ligne
 du texte déjà écrit contre le code réel de `embewi-agent-esp` @ `467feb3`) :
 
-1. ⬜ `idf_incompatible` (table §4b) jamais émis — `embewi_ota_prepare`
-   (`main/embewi_ota.c:103-123`) valide `chip`/`partition_layout`/`size`
-   mais ne compare jamais `req->idf_version` (parsé dans
-   `main/embewi_http.c:174`, jamais lu ensuite). Conséquence : un firmware
-   compilé pour une version IDF incompatible n'est pas rejeté au bon moment
-   avec le bon diagnostic — le contrat §9 liste pourtant `idf_incompatible`
-   comme un cas distinct de `chip_mismatch`. Pas bloquant en pratique (le
-   binaire mal compilé échouerait probablement autrement, plus tard, avec un
-   diagnostic moins clair), mais un écart réel entre le contrat et le code.
+1. ✔ (2026-07-28) `idf_incompatible` (table §4b) jamais émis — `embewi_ota_prepare`
+   (`main/embewi_ota.c:103-123`) validait `chip`/`partition_layout`/`size`
+   mais ne comparait jamais `req->idf_version` (parsé dans
+   `main/embewi_http.c:174`, jamais lu ensuite). Corrigé : `embewi_idf_version_compatible`
+   (`main/embewi_parse.c:131-137`) compare le major IDF déclaré au major du
+   device, câblé dans `embewi_ota_prepare` (`main/embewi_ota.c:117-119`).
+   Tests : `test_idf_version_compatible` (`test/host/test_parse.c`).
    Pas d'entrée dans `issues-cross-repo.md` (pas de contre-partie Core à
-   toucher — c'est une vérification purement agent) ; à traiter comme les
-   écarts complémentaires Core ci-dessus le jour où quelqu'un s'en occupe.
+   toucher — le Core mappait déjà `idf_incompatible` → `OTARejectedIdf`).
 
 Toutes les autres lignes vérifiées lors de ce balayage correspondaient
 exactement au texte déjà écrit (aucune autre divergence trouvée) : `#1
