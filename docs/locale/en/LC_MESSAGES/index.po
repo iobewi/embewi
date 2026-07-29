@@ -1,0 +1,104 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2026, Embewi
+# This file is distributed under the same license as the Embewi package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Embewi \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-28 17:16+0200\n"
+"PO-Revision-Date: 2026-07-28 17:16+0200\n"
+"Last-Translator: Embewi\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: ../../index.md:14
+msgid "Contrat Core ↔ Agent"
+msgstr "Core ↔ Agent contract"
+
+#: ../../index.md:14
+msgid "Spécification"
+msgstr "Specification"
+
+#: ../../index.md:23
+msgid "Liaison"
+msgstr "Liaison"
+
+#: ../../index.md:1
+msgid "Embewi — Documentation"
+msgstr "Embewi — Documentation"
+
+#: ../../index.md:3
+msgid ""
+"**Embewi** gère des microcontrôleurs (ESP32) comme des nœuds OTA d'un "
+"cluster Kubernetes. Le système est fait de deux composants qui "
+"communiquent via un **contrat versionné** — ce dépôt en est la source de "
+"vérité."
+msgstr ""
+"**Embewi** manages microcontrollers (ESP32) as OTA nodes of a Kubernetes "
+"cluster. The system is made of two components that communicate via a "
+"**versioned contract** — this repository is its source of truth."
+
+#: ../../index.md:12
+msgid "Le contrat"
+msgstr "The contract"
+
+#: ../../index.md:21
+msgid "Liaison Core ↔ Agent"
+msgstr "Core ↔ Agent liaison"
+
+#: ../../index.md:30
+msgid "Dépôts & docs composant"
+msgstr "Repositories & component docs"
+
+#: ../../index.md:32
+msgid ""
+"**Référence (ce dépôt)** — "
+"[`iobewi/embewi`](https://github.com/iobewi/embewi) : contrat `v1alpha1` "
+"+ doc système + site."
+msgstr ""
+"**Reference (this repository)** — "
+"[`iobewi/embewi`](https://github.com/iobewi/embewi): `v1alpha1` contract "
+"+ system docs + site."
+
+#: ../../index.md:34
+msgid ""
+"**Agent** — [`iobewi/embewi-agent-esp`](https://github.com/iobewi/embewi-"
+"agent-esp) · [📖 doc](https://iobewi.github.io/embewi-agent-esp/) : "
+"firmware ESP32/ESP-IDF. Docs propres au device (build prod, Secure Boot) "
+"sur son site."
+msgstr ""
+"**Agent** — [`iobewi/embewi-agent-esp`](https://github.com/iobewi/embewi-"
+"agent-esp) · [📖 docs](https://iobewi.github.io/embewi-agent-esp/): "
+"ESP32/ESP-IDF firmware. Device-specific docs (production build, Secure "
+"Boot) live on its own site."
+
+#: ../../index.md:37
+msgid ""
+"**Core** — [`iobewi/embewi-core`](https://github.com/iobewi/embewi-core) "
+": runtime Kubernetes. Design des contrôleurs dans son repo."
+msgstr ""
+"**Core** — [`iobewi/embewi-core`](https://github.com/iobewi/embewi-core)"
+": Kubernetes runtime. Controller design lives in its own repo."
+
+#: ../../index.md:40
+msgid ""
+"Principe : le **contrat** couvre les interfaces stables **inter-"
+"composants et externes** (protocole Core↔Agent, mais aussi les interfaces"
+" consommées par de l'outillage tiers — ex. noms de métriques Prometheus "
+"§8b, gelés au même titre qu'un champ JSON). La doc **propre à "
+"l'implémentation** d'un composant (design interne, détails de build) vit "
+"avec son code, pour ne pas diverger."
+msgstr ""
+"Principle: the **contract** covers stable **inter-component and "
+"external** interfaces (the Core↔Agent protocol, but also interfaces "
+"consumed by third-party tooling — e.g. Prometheus metric names §8b, "
+"frozen just like a JSON field). Documentation **specific to a "
+"component's implementation** (internal design, build details) lives "
+"with its code, so it never drifts out of sync."

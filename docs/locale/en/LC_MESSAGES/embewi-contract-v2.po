@@ -1,0 +1,1732 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2026, Embewi
+# This file is distributed under the same license as the Embewi package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Embewi \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-28 17:16+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: en\n"
+"Language-Team: en <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: ../../embewi-contract-v2.md:1
+msgid "Embewi — Contrat Core ↔ Agent (v2)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:3
+msgid ""
+"Spec de référence figée. Toute implémentation (Runtime Core en Go, Agent "
+"en ESP-IDF/C) doit s'y conformer. Les sections marquées **[NORMATIF]** "
+"sont des contraintes ; les sections **[RÉSERVE]** sont hors MVP et "
+"documentées pour ne pas recoder l'API plus tard."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:8
+msgid ""
+"Version protocole : `v1alpha1` Préfixe des endpoints inbound : "
+"`/v1alpha1/...` (versionner dès le départ — les devices sur le terrain "
+"survivront à plusieurs versions de Core)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:14
+msgid "0. Périmètre et hypothèses réseau **[NORMATIF]**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:23
+msgid "Conséquence de l'asymétrie :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:30
+msgid ""
+"Le jour où un device n'est plus joignable en inbound (NAT), le mode PUSH "
+"s'effondre : c'est une bifurcation d'architecture (mode PULL), pas un "
+"correctif. Elle est nommée ici, pas découverte en phase 4."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:36
+msgid "1. Modèle de sécurité **[NORMATIF]**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:38
+msgid "Principe directeur :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:45
+msgid ""
+"La vérification de signature n'est **pas** « Core OU ESP ». C'est **les "
+"deux**, avec autorité finale au bootloader — le seul composant qui ne "
+"peut pas mentir."
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Couche"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Rôle de sécurité"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Qui porte la confiance"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Core"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Pull OCI/ORAS, vérifie digest + signature + compat avant de transférer"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Efficacité (pas confiance)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Transport"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Endpoint OTA authentifié (mTLS, ou token par node au minimum)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Empêche l'inbound anonyme"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "ESP — réception"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "N'accepte un OTA que d'un Core autorisé (auth transport)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Filtre l'appelant"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Bootloader"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "**Secure Boot v2** : refuse de booter toute image non/ mal signée"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "**Racine de confiance**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "eFuse"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "**Anti-rollback** : bloque le downgrade vers image signée plus ancienne"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Matériel, irréversible"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Flash"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "**Flash encryption** : si vol physique du device plausible"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Confidentialité at-rest"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Runtime"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Rollback validé **localement** après self-check (cf. §3)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Intégrité fonctionnelle"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:58
+msgid ""
+"Pourquoi le Core ne peut pas être racine de confiance : un ESP qui reçoit"
+" des octets sur `/ota/write` n'a aucun moyen cryptographique de savoir "
+"que ces octets sont ceux que le Core a vérifiés. Sans Secure Boot, "
+"quiconque atteint l'IP de management peut écrire une image arbitraire. "
+"**Sans auth inbound, `/ota/activate` est une primitive de reboot offerte "
+"au premier venu sur le LAN.**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:64
+msgid "Transport — décision MVP explicite :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:71
+msgid ""
+"Justification : mTLS sur ESP-IDF est faisable, mais entraîne "
+"immédiatement gestion de CA, distribution + rotation de certificats, "
+"horloge fiable (validation de validité) et empreinte mémoire. Pour un "
+"premier prototype, HTTPS + token par node + Secure Boot v2 est un socle "
+"cohérent et défendable. mTLS est la cible, pas le point de départ."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:77
+msgid "Exigences minimales MVP :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:78
+msgid ""
+"`CONFIG_SECURE_BOOT_V2_ENABLED` — sinon le projet n'est pas défendable en"
+" revue sécu."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:79
+msgid ""
+"Auth sur tous les endpoints inbound : **token par node sur HTTPS** (cible"
+" mTLS)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:80
+msgid ""
+"Anti-rollback eFuse activé dès qu'un schéma de version de sécurité est en"
+" place."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:81
+msgid "Flash encryption : optionnel MVP, obligatoire si le device peut être volé."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:83
+msgid "Défense en profondeur réseau (opt-in production, §8) :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:84
+msgid ""
+"VLAN dédié : subnet ESP isolé, seuls les nodes Core ont une route L3 vers"
+" lui."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:85
+msgid ""
+"NetworkPolicy K8s : egress vers le subnet ESP réservé aux Pods Core "
+"(ipBlock)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:86
+msgid ""
+"`CONFIG_EMBEWI_ENABLE_IP_FILTER` : l'agent rejette les connexions hors "
+"CIDR autorisé avant tout handler (`open_fn` httpd). CIDR configurable via"
+" McuConfigMap `allowed_cidr` — utiliser le CIDR du cluster plutôt que "
+"l'IP exacte du Pod Core."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:90
+msgid ""
+"**Rayon d'action d'un token compromis (NORMATIF).** Le token par node "
+"n'autorise pas seulement les appels inbound sur son device. Via "
+"`heartbeat.ip`, il pilote aussi `EndpointSlice.endpoints[].addresses` "
+"(§8) — un attaquant en possession d'un token peut donc émettre un "
+"heartbeat déclarant une `ip` arbitraire et détourner tout le trafic du "
+"`Service` vers un endpoint qu'il contrôle, **sans jamais toucher au "
+"device physique** (qui continue en parallèle d'émettre ses propres "
+"heartbeats — un battement d'adresse plutôt qu'un état franc). Cohérent "
+"avec le modèle `token == identité`, mais le rayon d'action réel dépasse «"
+" appeler les endpoints inbound de ce device » : il inclut les "
+"**consommateurs** du workload routé par ce `Service`. Détection côté "
+"Core, cf. §8."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:102
+msgid ""
+"**Dev vs Prod.** Ces exigences sont des opérations eFuse "
+"**irréversibles** : elles ne s'activent **pas en dev**. Elles sont "
+"portées par un profil de build séparé et opt-in "
+"(`sdkconfig.defaults.prod` + `CONFIG_EMBEWI_VERIFY_CORE_CERT` pour l'auth"
+" des flux sortants). Procédure complète, gestion de la clé de signature "
+"et de la CA du Core : **`embewi-prod-security.md`**. Le flux de dev reste"
+" chiffré-mais-non-authentifié et librement reflashable."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:111
+msgid "1a. Enrôlement et identité du device **[NORMATIF]**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:113
+msgid ""
+"Un device n'est pas « ajouté » par le Core : il **se présente**. "
+"L'identité et le secret d'authentification sont établis **hors-bande au "
+"provisioning**, pas négociés en ligne (pas d'AC, pas de CSR en MVP — cf. "
+"§1)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:125
+msgid ""
+"**Durcissement du provisioning (l'AP est le moment le plus faible — aucun"
+" secret partagé n'existe encore) :**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:141
+msgid ""
+"Le couple `(node_id, token)` est l'identité du device. Le token est le "
+"secret partagé : l'admin le recopie dans le Core (typiquement un "
+"`McuSecret`) au moment où il crée le `McuNode` correspondant. **Le Core "
+"et le device connaissent le token ; le réseau ne le voit jamais en clair "
+"(HTTPS, §1).**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:146
+msgid "Découverte côté Core — deux modèles compatibles :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:159
+msgid "Invariants côté agent (ce que ce repo garantit) :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:169
+msgid ""
+"Le Core est responsable de refuser un `node_id` en double (cf. §7, "
+"`AmbiguousBinding`) — l'agent ne déduplique pas, il s'annonce."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:174
+msgid "2. États de l'agent **[NORMATIF]**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:185
+msgid "Transitions clés :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:198
+msgid ""
+"Règle d'or côté heartbeat : **un device en `pending_verify` continue "
+"d'émettre un heartbeat** portant `state: \"pending_verify\"`. Pas de "
+"silence pendant la fenêtre de validation (le silence est indistinguable "
+"d'un crash)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:204
+msgid "3. Séquence OTA critique **[NORMATIF]**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:206
+msgid ""
+"C'est le cœur dur du projet — le bout qui peut l'invalider. Le rollback "
+"réel n'est **pas** piloté par le Core : c'est le bootloader ESP-IDF qui "
+"le fait."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:224
+msgid "Deux garde-fous **obligatoires**, l'un local, l'autre côté Core :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:239
+msgid ""
+"Le signal de santé sert **deux maîtres** : il valide l'image localement "
+"(`mark_valid`) ET il ouvre le routage côté cluster (EndpointSlice ready)."
+" Si on rate ça, on obtient des ESP qui annoncent « ready » sur une image "
+"qui se fera revert au prochain reset."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:244
+msgid ""
+"Confirmation de fin de déploiement émise par l'agent (cf. §5, ré-écho du "
+"`deployment_id` — pas seulement le digest, car deux déploiements peuvent "
+"partager un digest) :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:259
+msgid "4. Endpoints inbound (Core → ESP) **[NORMATIF]**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:261
+msgid "`GET /v1alpha1/info`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:263
+msgid "Identité matérielle **+ slot stagé** (clé de l'idempotence, cf. §6)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:292
+#, python-brace-format
+msgid ""
+"`staged.state` ∈ `none | written | activating`. Quand aucun slot n'est "
+"stagé : `\"staged\": { \"state\": \"none\" }`."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:295
+msgid ""
+"**Découverte de version d'API (NORMATIF).** `api_versions` liste les "
+"versions de protocole `/v1alpha1`-style supportées par l'agent, la plus "
+"élevée en premier. Règles :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:309
+msgid "`GET /v1alpha1/health`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:311
+msgid "Health **local**, pas seulement réseau."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:321
+msgid "`status` ∈ `ok | degraded | fail`."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:323
+msgid "`POST /v1alpha1/ota/prepare`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:325
+msgid ""
+"Le Core annonce le firmware avant transfert. L'ESP vérifie la compat "
+"**avant** tout octet (un binaire `esp32-s3` flashé sur `esp32` ne boote "
+"pas)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:340
+msgid "Réponse (accept) :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:346
+msgid ""
+"Réponse (refus) — `reason` ∈ `chip_mismatch | layout_mismatch | "
+"idf_incompatible | busy | size_too_large` :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:352
+msgid "`PUT /v1alpha1/ota/write`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:354
+msgid "Le Core streame le `.bin` brut. L'ESP ne connaît jamais OCI/ORAS."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:356
+msgid "Headers :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:365 ../../embewi-contract-v2.md:477
+#: ../../embewi-contract-v2.md:508 ../../embewi-contract-v2.md:529
+#: ../../embewi-contract-v2.md:549
+msgid "Réponse :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:371
+msgid ""
+"L'ESP calcule le digest **en incrémental, au fil de l'écriture** (SHA-256"
+" streaming sur chaque chunk reçu via `esp_ota_write`), et compare au "
+"header en fin de transfert. Pas de relecture de la partition flash après "
+"coup. Rejet si mismatch (`status: \"digest_mismatch\"`). Le Core a "
+"vérifié pour l'efficacité ; l'ESP revérifie ce qu'il a réellement écrit, "
+"sans coût de relecture."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:377
+msgid "Write reprenable — `Content-Range` (in-session) **[NORMATIF]**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:379
+msgid ""
+"Le `PUT` accepte un header optionnel pour reprendre après une coupure "
+"réseau sans retransférer tout le binaire :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:386
+msgid "Protocole :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:398
+msgid ""
+"Le device garde la session d'écriture ouverte (handle OTA + état SHA-256)"
+" **entre les requêtes** : une déconnexion TCP n'avorte rien. Le Core "
+"**chunke** l'image en plusieurs plages et, sur échec, reprend à l'offset "
+"rapporté par le device."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:402
+msgid "Réponse de resynchronisation (offset demandé ≠ offset réel) :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:409
+msgid "Réponse de plage intermédiaire :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:416
+#, python-brace-format
+msgid "`Content-Range` malformé → `400 {\"error\":\"bad_content_range\"}`."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:418
+msgid ""
+"**Reprise inter-reboot** (le device redémarre au milieu du transfert) "
+"reste **[RÉSERVE]** : l'état SHA et le handle OTA sont en RAM. Le Core "
+"repart alors de `start=0`. La reprise in-session couvre le cas courant "
+"(coupure wifi)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:422
+msgid "`POST /v1alpha1/ota/activate`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:424
+msgid ""
+"L'ESP configure le prochain boot (`esp_ota_set_boot_partition`) et "
+"redémarre."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:430 ../../embewi-contract-v2.md:610
+msgid "Réponse avant reboot :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:436
+msgid "`GET /v1alpha1/config`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:438
+msgid ""
+"Lit l'état de la configuration de l'agent : valeurs actives (chargées au "
+"dernier boot) et valeurs NVS courantes (peut diverger si un `POST "
+"/config` a été fait sans reboot depuis)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:457
+#, python-brace-format
+msgid ""
+"`generation > active_generation` → config poussée mais reboot en attente."
+" Quand NVS est vide (aucun push depuis le flash) : `\"nvs\": {}`, les "
+"deux générations valent `0`."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:461
+msgid "`POST /v1alpha1/config`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:463
+msgid ""
+"Pousse un jeu de clés/valeurs vers le NVS de l'agent. Sémantique **merge-"
+"on-key** : seules les clés citées sont écrites, les autres sont "
+"inchangées. Les valeurs sont des **chaînes UTF-8** ; l'app interprète le "
+"type (`atoi`, `strtof`, etc.)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:487
+msgid ""
+"`generation` est incrémenté à chaque `POST /config`. Pour "
+"**réinitialiser** une clé au défaut build, pousser la valeur `\"\"` "
+"(chaîne vide) — l'agent efface la clé NVS."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:491
+#, python-brace-format
+msgid ""
+"**Restriction (NORMATIF).** La chaîne vide est **réservée** comme "
+"sentinelle de reset : elle ne peut pas être stockée comme valeur légitime"
+" d'une clé. Une app qui a besoin de distinguer « clé absente » de « clé "
+"présente mais sémantiquement vide » (préfixe optionnel, suffixe de "
+"topic…) doit encoder ce cas par une sentinelle applicative (ex. une "
+"valeur dédiée hors alphabet attendu), pas par `\"\"`. `DELETE "
+"/config/{key}` — qui lèverait cette restriction — reste **[RÉSERVE]** "
+"(Annexe)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:499
+msgid "`POST /v1alpha1/app/port`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:501
+msgid ""
+"Reconfigure le port TCP du service applicatif embarqué (ex. serveur REST "
+"de l'application métier). Pris en compte au prochain démarrage de l'app "
+"service."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:514
+msgid ""
+"Contrainte : `1024 ≤ port ≤ 65535`. Valeur persistée en NVS, active au "
+"reboot."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:516
+msgid "`POST /v1alpha1/tls/cert`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:518
+msgid ""
+"Pousse un certificat TLS et sa clé privée PEM pour le serveur HTTPS de "
+"l'agent. Permet la rotation de certificat sans cycle OTA. Effectif au "
+"prochain `embewi_http_start()` (i.e. après reboot)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:535
+msgid ""
+"Fallback : si aucun certificat n'a été poussé, l'agent utilise un "
+"certificat auto-signé EC P-256 généré au build (non secret, pour "
+"démarrage sans provisioning TLS préalable)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:539
+msgid "`POST /v1alpha1/token`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:541
+msgid ""
+"Rotation du token Bearer par node **sans repasser par le portail captif**"
+" (qui exige un accès physique). Authentifié avec le token **courant** ; "
+"en cas de succès, le nouveau token remplace l'ancien en NVS et devient "
+"seul valide."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:555
+msgid "Protocole de rotation sans coupure (responsabilité Core) :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:565
+#, python-brace-format
+msgid ""
+"Contrainte : `8 ≤ len(token) ≤ 64`. Atomicité : l'écriture NVS est "
+"commitée **avant** la réponse ; si le commit échoue, l'ancien token reste"
+" actif et la réponse est `500` (`{\"error\":\"nvs_write_failed\"}`) — pas"
+" de fenêtre où aucun token n'est valide. Un token vide (`\"\"`) est "
+"**refusé** (`400`) : on ne désactive pas l'auth par rotation (utiliser le"
+" portail pour un reset complet)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:571
+msgid ""
+"**Rétention côté Core pendant la fenêtre de rotation (NORMATIF).** La "
+"mitigation « le Core ré-applique la rotation si le heartbeat reste "
+"authentifié à l'ancien token » ne fonctionne que si le Core **peut encore"
+" authentifier** ce heartbeat — donc s'il conserve l'ancien token quelque "
+"part. Le Core **DOIT** donc retenir `McuSecret.previousToken` tant que "
+"l'étape 3 n'est pas confirmée :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:588
+msgid ""
+"Cas explicitement couvert — **crash du Core entre l'étape 1 et l'étape "
+"2** : au redémarrage, `McuSecret` contient déjà `token=newToken` **et** "
+"`previousToken=oldToken`. Le Core peut ré-émettre l'étape 2 avec "
+"`previousToken`, sans reprovisioning physique. Sans cette rétention, le "
+"device — qui n'a jamais reçu `newToken` — devient définitivement "
+"injoignable en inbound (seul recours : portail captif, accès physique)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:595
+msgid ""
+"Un heartbeat authentifié avec `previousToken` reste **ACCEPTÉ** pendant "
+"cette fenêtre : ce n'est pas une anomalie, c'est le signal attendu tant "
+"que l'étape 3 n'a pas convergé."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:599
+msgid "`POST /v1alpha1/reboot`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:601
+msgid ""
+"Déclenche un reboot contrôlé, authentifié comme tous les endpoints "
+"inbound. Le Core l'utilise pour appliquer un `POST /config` sans cycle "
+"OTA complet. Si un OTA est planifié dans la même réconciliation, **ne pas"
+" appeler `/reboot` séparément** : `POST /ota/activate` couvre déjà le "
+"reboot."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:618
+msgid "4a. Modèle de config en couches **[NORMATIF]**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:626
+msgid ""
+"L'agent lit la config NVS **une seule fois au boot** (`embewi_app_init`)."
+" Toute modification nécessite un reboot pour prendre effet — explicite "
+"via `POST /reboot` ou implicite via `POST /ota/activate`."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:630
+msgid ""
+"**L'agent ne valide pas la sémantique des valeurs.** Il stocke et expose."
+" La validation (plage GPIO valide, fréquence cohérente…) est "
+"responsabilité du Core au moment du push (cf. §9). Mécanisme recommandé :"
+" un ValidatingAdmissionWebhook côté Core — voir `embewi-core-design.md` "
+"§2 (inclut les limites de taille clé/valeur à faire respecter, couplées "
+"aux buffers agent)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:636
+msgid "Clés standardisées (convention inter-apps, non imposées par l'agent) :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Clé"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Type"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Description"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`gpio_button`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "int"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "GPIO du bouton de test (BOOT sur eval boards)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`gpio_ws2812`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "GPIO de la LED WS2812B (app rainbow)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`ntp_server`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "str"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "serveur NTP (défaut `pool.ntp.org` ; DHCP aussi utilisé)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:644
+msgid ""
+"Clés spécifiques à une app : documentées dans le `McuConfigMap` du "
+"déploiement, opaques pour l'agent."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:649
+msgid "4b. Vocabulaire des codes d'erreur **[NORMATIF]**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:651
+msgid ""
+"Codes stables et exhaustifs émis par l'agent. Le Core **doit** les mapper"
+" en Kubernetes Events / conditions plutôt que de parser des messages "
+"libres (qui peuvent changer). Tout nouveau code passe par une révision de"
+" ce contrat."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:655
+msgid ""
+"**`reason` de `POST /ota/prepare`** (champ `reason`, HTTP 200, "
+"`accepted:false`) :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`reason`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Cause"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Event Core suggéré"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`chip_mismatch`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "binaire pour un autre SoC que celui du device"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`OTARejectedChip`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`layout_mismatch`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`partition_layout` incompatible"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`OTARejectedLayout`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`idf_incompatible`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "version IDF du binaire non supportée"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`OTARejectedIdf`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`size_too_large`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "image > taille du slot inactif"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`OTARejectedSize`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`busy`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "un OTA est déjà en cours (slot réservé)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`OTABusy`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:665
+msgid "**`status` de `PUT /ota/write`** (HTTP 200 sauf mention) :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`status`/`error`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`written`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "succès, digest vérifié"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`OTAWritten`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`partial`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "plage écrite, transfert non terminé (reprise)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "— (interne)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`digest_mismatch`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "SHA-256 écrit ≠ `X-Embewi-Digest`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`OTADigestMismatch`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`write_failed`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "échec flash (`esp_ota_write`)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`OTAWriteFailed`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`ota_begin_failed`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`esp_ota_begin` KO (HTTP 500)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`OTABeginFailed`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`range_mismatch`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "offset Content-Range ≠ offset device (HTTP 416)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "— (resync, attendu)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`bad_content_range`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "header Content-Range malformé (HTTP 400)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`OTABadRange`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:677
+msgid "**Erreurs de `POST /config`** (champ `error`) :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`error`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "HTTP"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`missing_data_field`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "400"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "objet `data` absent du corps"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`nvs_write_failed`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "500"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "échec d'écriture NVS"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:684
+msgid "**Erreurs transverses** (tout endpoint inbound) :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`unauthorized`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "401"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "token absent / invalide (§1)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`body_too_large`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "413"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "corps de requête > limite"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "échec NVS (rotation token, port, cert…)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:692
+msgid ""
+"Règle : un refus métier légitime (`prepare` rejeté, `digest_mismatch`) "
+"répond **HTTP 200** avec le code dans le corps — ce n'est pas une erreur "
+"de transport. Les `4xx/5xx` sont réservés aux erreurs de "
+"protocole/ressource."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:698
+msgid "5. Flux sortants (ESP → Core / collector) **[NORMATIF]**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:700
+msgid "Heartbeat"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:702
+msgid ""
+"Device-initiated (compatible avec un device qui n'accepte pas d'inbound)."
+" Transport : HTTPS — le scheme est forcé en `https://` indépendamment du "
+"scheme stocké dans `ctrl_url` (contrat §1)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:724
+msgid ""
+"`ota_validated` distingue `pending_verify` (false) de `running` (true) "
+"même si le digest est déjà celui de la nouvelle image."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:727
+msgid ""
+"`ip` : adresse IPv4 courante de l'interface Wi-Fi STA. **Champ requis** —"
+" c'est la source de vérité que le Core utilise pour mettre à jour "
+"`endpoints[].addresses` de l'EndpointSlice (§8). Permet une IP dynamique "
+"(DHCP) sans action manuelle : le prochain heartbeat suffit à corriger le "
+"routage."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:732
+msgid ""
+"**Horloge / `ts` (NORMATIF).** `ts` est un **epoch UNIX en secondes, "
+"UTC**, synchronisé par **SNTP** au boot (serveur via la clé config "
+"`ntp_server` + NTP DHCP). Tant que la synchro n'a pas eu lieu, l'horloge "
+"ESP démarre à 1970 et `ts` ne vaut que l'uptime (petite valeur) — le Core"
+" détecte ce cas par `ts` très faible. **Dépendance prod** : la "
+"vérification du certificat du Core (TLS sortant authentifié, §1) contrôle"
+" les dates de validité du cert ; sans horloge juste, le handshake TLS "
+"échoue. L'agent synchronise donc l'heure **avant** d'ouvrir ses flux "
+"sortants. NTP injoignable en prod = pas de heartbeat/log TLS tant que "
+"l'heure n'est pas posée (fail-closed assumé)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:742
+msgid ""
+"**Mode de panne NTP → silence (NORMATIF).** Ce fail-closed produit "
+"exactement ce que la règle d'or §2 cherche à bannir : un device qui "
+"devient silencieux, indistinguable côté Core d'un crash, d'un "
+"débranchement ou d'une panne réseau (`Ready/HeartbeatTimeout`). Le mode "
+"de panne est de plus **corrélé** : une panne NTP peut toucher toute la "
+"flotte simultanément et ressembler à une panne massive de devices."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:749
+msgid ""
+"Mitigation retenue — **canal de détresse dégradé** : tant que l'horloge "
+"n'est pas posée, l'agent est autorisé à ouvrir son flux sortant "
+"(heartbeat/logs) sur TLS **sans vérifier la validité temporelle** "
+"(`notBefore`/`notAfter`) du certificat du Core. Le chiffrement du canal "
+"reste actif ; seule la fenêtre de validité temporelle est suspendue — la "
+"vérification de la chaîne/du CN du certificat "
+"(`CONFIG_EMBEWI_VERIFY_CORE_CERT`) reste en vigueur. Le heartbeat émis "
+"dans cet état porte un indicateur dédié :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:761
+msgid "Règles associées :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:775
+msgid ""
+"**Schéma extensible (télémétrie → métriques).** Le heartbeat est un objet"
+" JSON **ouvert** : le Core doit ignorer les champs inconnus (forward-"
+"compatibility). Les champs de télémétrie au-delà du minimum requis sont "
+"**optionnels** et exposables côté Core en métriques (`kubectl top "
+"mcunode`, Prometheus)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:780
+msgid ""
+"Champs **requis** : `node_id`, `ip`, `ts`, `state`, `ota_validated`, "
+"`config_generation`. Tout le reste est best-effort."
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Champ"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Statut"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Métrique Core suggérée"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`ip`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "présent"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "— (pilote EndpointSlice §8)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`heap_free`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`mcunode_heap_free_bytes`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`rssi`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`mcunode_wifi_rssi_dbm`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`uptime_ms`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`mcunode_uptime_seconds`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`temp_celsius`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`mcunode_temperature_celsius`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`task_hwm_min`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`mcunode_task_stack_hwm_bytes`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`flash_wear_pct`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "réservé"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`mcunode_flash_wear_ratio`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:793
+msgid ""
+"`temp_celsius` : capteur interne du SoC, **°C**. Sentinelle **`-127.0`** "
+"si le capteur est indisponible (le Core doit filtrer cette valeur)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:796
+msgid ""
+"`task_hwm_min` : plus petit high-water-mark de stack restant, en "
+"**octets** (plus c'est proche de 0, plus une task approche de "
+"l'overflow). Min sur toutes les tasks si "
+"`CONFIG_FREERTOS_USE_TRACE_FACILITY` est actif, sinon HWM de la task "
+"heartbeat."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:800
+msgid ""
+"`flash_wear_pct` reste **réservé** : pas d'API ESP-IDF pour lire l'usure "
+"des partitions OTA/app. Le nom est figé pour le jour où une mesure "
+"existera."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:803
+msgid "Logs"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:805
+msgid "Une ligne JSON par message :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:817
+msgid "Flux MVP : `ESP → HTTPS POST → Core /v1alpha1/logs`."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:819
+msgid ""
+"Transport : le scheme est forcé en `https://` côté agent quel que soit le"
+" scheme provisionné en NVS — un `ctrl_url` en `http://` est une erreur de"
+" configuration, non une option. Même politique que le heartbeat."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:823
+msgid "Streaming de logs (WebSocket — outbound) **[NORMATIF]**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:825
+msgid ""
+"L'agent ouvre une connexion WebSocket **cliente** vers "
+"`wss://ctrl_url_host:port/v1alpha1/logs` — le scheme est toujours "
+"`wss://` (contrat §1 : transport chiffré obligatoire), quel que soit le "
+"scheme de `ctrl_url`. Tous les messages `ESP_LOGx` — composants IDF, "
+"WiFi, OTA, code applicatif, bibliothèques tierces — sont capturés via "
+"`esp_log_set_vprintf` et streamés en temps réel sans modification des "
+"appels existants."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:831
+msgid ""
+"Format par frame WebSocket (JSON, `level=\"raw\"` — parsing du préfixe "
+"IDF hors MVP) :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:844
+msgid ""
+"Garantie de livraison : **best-effort, sans buffering inter-"
+"reconnexion**. Un ring buffer 4 KB (~25 lignes) absorbe les rafales tant "
+"que le WS est connecté. Si le buffer sature alors que le WS est connecté,"
+" les nouveaux messages sont silencieusement abandonnés — **on préfère "
+"perdre des logs plutôt que bloquer le système**."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:850
+msgid ""
+"En cas de **déconnexion WS**, les messages émis pendant la coupure sont "
+"**perdus** (la tâche de drain continue de vider le buffer et les jette). "
+"Choix assumé pour l'observabilité : à la reconnexion, on diffuse les logs"
+" **récents** plutôt qu'un vieux backlog accumulé. Les logs critiques "
+"OTA/lifecycle passent de toute façon par `embewi_log_emit()` (HTTP POST, "
+"§5 « Logs »), pas par ce canal."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:856
+msgid ""
+"Connexion **device-initiated** (outbound, compatible NAT). Complémentaire"
+" à `embewi_log_emit()` qui reste utilisé pour les événements "
+"OTA/lifecycle via HTTP POST (envoi immédiat critique)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:862
+msgid "6. Idempotence et reprise **[NORMATIF]**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:864
+msgid ""
+"Le reconcile du Core **doit** être reprenable. Scénario garanti : le Core"
+" crashe entre `/ota/write` et `/ota/activate`."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:879
+msgid ""
+"Sans le champ `staged`, le Core re-transfère 1 MB inutilement à chaque "
+"reprise."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:881
+msgid "**Idempotence config :**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:896
+msgid ""
+"Config et OTA peuvent coexister dans la même réconciliation. Ordre "
+"canonique : **POST /config d'abord, OTA ensuite** — un seul reboot couvre"
+" les deux."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:901
+msgid "7. Politique de binding **[NORMATIF]**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:903
+msgid ""
+"Un `McuDeployment` est lié à un **device physique** (le `wheel-"
+"controller` est câblé à un moteur précis). Le placement n'est pas du "
+"scheduling fongible : c'est une **résolution d'affinité matérielle**."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:914
+msgid "On privilégie le pin explicite :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:921
+msgid "plutôt que le sélecteur qui peut matcher plusieurs devices :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:929
+msgid ""
+"Conflit (deux McuDeployment visant le même ESP) : **first-bound wins**, "
+"le second part en erreur `DeviceBusy`. Pas de préemption en MVP."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:932
+msgid ""
+"**Orchestration de flotte.** La mise à jour coordonnée de N devices "
+"identiques (rolling/canary, rollback sur taux d'échec) est portée par un "
+"`McuDeploymentSet` **purement côté Core** — voir `embewi-core-design.md` "
+"§1. Cet objet génère des `McuDeployment` unitaires et n'ajoute aucune "
+"surface côté agent."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:940
+msgid "7a. McuConfigMap **[NORMATIF]**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:942
+msgid ""
+"Ressource Kubernetes portée par le Core, indépendante du binaire. "
+"Découple le câblage matériel (GPIOs, fréquences, adresses I²C…) de "
+"l'image OTA."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:956
+msgid "Référence depuis un `McuDeployment` (optionnel — absent = défauts build) :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:967
+msgid "**Règles de binding McuConfigMap → device :**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:975
+msgid ""
+"Un `McuConfigMap` peut être partagé entre plusieurs `McuDeployment` "
+"ciblant des devices **identiquement câblés**. La modification du "
+"`McuConfigMap` déclenche une réconciliation sur tous les devices qui y "
+"référencent."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:981
+msgid "8. Effets Kubernetes **[NORMATIF]**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:983
+msgid ""
+"Service **selectorless** + EndpointSlice géré à la main par le "
+"contrôleur. L'endpoint pointe **directement sur l'IP de management de "
+"l'ESP** (pas de Pod IP logique en MVP — elle reviendrait seulement avec "
+"un vrai proxy/NAT)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:996
+msgid ""
+"**IP de l'endpoint (NORMATIF).** Le Core **DOIT** mettre à jour "
+"`endpoints[].addresses` avec le champ `ip` du heartbeat à chaque "
+"réception. L'IP source TCP n'est pas utilisée : elle peut différer de "
+"l'IP de management en présence d'un proxy ou d'un routage asymétrique."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1006
+msgid ""
+"Cette règle rend l'IP dynamique (DHCP) transparente : le prochain "
+"heartbeat (toutes les 5 s) suffit à corriger le routage après un "
+"changement d'adresse, sans re-provisioning. Un device avec IP statique "
+"NVS converge immédiatement."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1010
+msgid "Pilotage de `ready` :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1019
+msgid ""
+"Le Core **ne marque jamais** un déploiement `Ready` avant la confirmation"
+" agent (`state=running` + `ota_validated=true` + bon `deployment_id`). Le"
+" healthcheck devient routage, gratuitement."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1023
+msgid ""
+"**Détection de divergence `heartbeat.ip` (NORMATIF).** Le Core compare "
+"`heartbeat.ip` à l'IP source TCP de la requête. En cas de divergence, il "
+"émet l'Event Kubernetes `HeartbeatIPMismatch` (Warning) — sans rejeter le"
+" heartbeat ni bloquer la mise à jour de l'`EndpointSlice` : un proxy ou "
+"un routage asymétrique légitime peut produire cette divergence (cf. §1, "
+"rayon d'action d'un token compromis). C'est une détection, pas un "
+"blocage."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1030
+msgid ""
+"Restriction CIDR de `heartbeat.ip` (optionnelle, **hors MVP**) : borner "
+"`heartbeat.ip` au CIDR de management (même clé `allowed_cidr` que §1) et "
+"rejeter (`400`) un heartbeat hors CIDR bornerait la redirection au subnet"
+" isolé. Non retenue pour le MVP — à activer si le risque de redirection "
+"de trafic est jugé prioritaire pour un déploiement donné."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1036
+msgid ""
+"**Sécurité réseau (défense en profondeur).** Le subnet de management des "
+"ESP doit être isolé sur un VLAN dédié et protégé par une NetworkPolicy "
+"K8s (egress vers le subnet ESP réservé aux Pods Core). Côté agent, "
+"`CONFIG_EMBEWI_ENABLE_IP_FILTER` (opt-in production) rejette les "
+"connexions hors du CIDR autorisé avant tout handler, via `open_fn` du "
+"serveur HTTPS. Le CIDR est configurable par McuConfigMap (`allowed_cidr` "
+"— cluster CIDR recommandé). Ces trois couches (VLAN + NetworkPolicy + "
+"filtrage agent) sont complémentaires au token Bearer."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1047
+msgid "8a. Status conditions des CRDs **[NORMATIF]**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1049
+msgid ""
+"Les CRDs exposent des `.status.conditions[]` au format Kubernetes "
+"standard (`type` / `status` / `reason` / `message` / "
+"`lastTransitionTime`). Cela permet l'intégration native avec `kubectl "
+"wait`, ArgoCD, Flux et tout outillage K8s qui observe les conditions."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1054
+msgid "McuNode — état du device physique"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Condition"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`status`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Signification"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`Provisioned`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`ProvisioningComplete`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "True"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "node_id + token établis"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`ProvisioningPending`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "False"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "premier boot, portail AP actif"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`Ready`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`HeartbeatOK`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "heartbeat reçu dans les 2× la période (< 10 s)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`HeartbeatTimeout`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "aucun heartbeat reçu > seuil configurable"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`NotProvisioned`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Unknown"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "device jamais enrôlé"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1079
+msgid "McuDeployment — état du cycle OTA + workload"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`Progressing`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`OTAInProgress`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "PUT /ota/write ou `pending_verify` en cours"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`DeploymentComplete`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "OTA terminé, firmware stable"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`OTAFailed`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "rollback déclenché ou état `failed` terminal"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`Available`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`WorkloadReady`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "EndpointSlice.ready=true"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`PendingVerification`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "state=`pending_verify` — image non encore validée"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`DeviceDegraded`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+#, python-brace-format
+msgid "state ∈ {`degraded`, `rollback`, `failed`}"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "device plus joignable"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1106
+msgid "**`Ready` synthétique** (condition calculée) :"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1112
+msgid ""
+"Utilisé pour `kubectl wait mcudeployment/wheel-left "
+"--for=condition=Available`."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1114
+msgid ""
+"Les `reason` sont des codes **stables** — les renommer implique de bumper"
+" la version API. Le Core les mappe en Events Kubernetes lisibles (§4b)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1119
+msgid "8b. Pipeline métriques **[NORMATIF]**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1121
+msgid ""
+"Section Core-only (l'agent ignore l'existence de Prometheus) mais gardée "
+"dans le contrat transverse : les noms de gauges sont une **interface "
+"publique** consommée par de l'outillage externe (dashboards, alertes) — "
+"au même titre qu'un champ JSON du protocole, ils méritent d'être gelés à "
+"un seul endroit stable plutôt que dans la doc d'implémentation d'un "
+"composant (cf. principe en page d'accueil)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1128
+msgid ""
+"Le Core agrège les heartbeats et expose un endpoint Prometheus `/metrics`"
+" sur un port dédié (ex. `:9090`). Chaque heartbeat reçu met à jour les "
+"gauges du device correspondant via son label `node_id`."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1139
+msgid "**Labels communs sur toutes les métriques :**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Label"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Source"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Exemple"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`node_id`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`heartbeat.node_id`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`embewi-a1b2c3`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`workload`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "McuDeployment lié"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`wheel-controller`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`chip`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`GET /info` au boot"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`esp32c3`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1147
+msgid ""
+"**Noms de métriques (stables — ne pas renommer sans réviser les "
+"dashboards) :**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Métrique"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "Source heartbeat"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "gauge"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`uptime_ms / 1000`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`temp_celsius` (filtrer `-127.0`)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`mcunode_last_heartbeat_timestamp`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`ts` (epoch UTC)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`mcunode_config_generation`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`config_generation`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`mcunode_ota_validated`"
+msgstr ""
+
+#: ../../embewi-contract-v2.md
+msgid "`ota_validated` → 0/1"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1160
+msgid ""
+"**Staleness** : si le Core ne reçoit plus de heartbeat d'un device "
+"(timeout), il cesse de mettre à jour ses gauges. Prometheus les marque "
+"stale après `--query.lookback-delta` (5 min par défaut) — les alertes de "
+"type `absent()` détectent naturellement un device silencieux."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1165
+msgid "**Intégration Prometheus Operator (recommandée) :**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1183
+msgid ""
+"Sans Prometheus Operator : scrape direct via `prometheus.yml` "
+"(`static_configs` sur `embewi-core-service:9090`)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1188
+msgid "9. Découpage des responsabilités **[NORMATIF]**"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1212
+msgid ""
+"Le device reste bête. Toute la complexité « cloud native » (OCI, ORAS, "
+"K8s, confiance amont) reste côté Core. C'est le principe de façade "
+"appliqué au plan de données."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1218
+msgid "10. Ordre de réalisation (rappel)"
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1248
+msgid ""
+"**Côté agent : tout le contrat MVP est implémenté.** Côté Core, le "
+"runtime minimal (McuNode/McuDeployment/McuConfigMap, pull OCI/ORAS, "
+"heartbeat, métriques) l'est également — détail dans `embewi-core-"
+"design.md`. Les 6 issues de la dernière revue de contrat (rétention de "
+"token, détection `heartbeat.ip`, canal de détresse NTP, découverte de "
+"version d'API…) sont **toutes terminées** (Core et agent) — voir `liaison"
+"/issues-cross-repo.md`. `McuDeploymentSet` et le webhook de validation "
+"sémantique restent hors MVP (Annexe)."
+msgstr ""
+
+#: ../../embewi-contract-v2.md:1259
+msgid "Annexe — Hors MVP **[RÉSERVE]**"
+msgstr ""
+

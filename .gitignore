@@ -1,3 +1,4 @@
 # Build de la doc
 docs/_build/
+docs/locale/**/*.mo
 __pycache__/
