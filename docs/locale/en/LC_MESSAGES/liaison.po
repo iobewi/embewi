@@ -3,14 +3,13 @@
 # This file is distributed under the same license as the Embewi package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Embewi \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-07-28 17:16+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"PO-Revision-Date: 2026-07-29 09:00+0200\n"
+"Last-Translator: Embewi\n"
 "Language: en\n"
 "Language-Team: en <LL@li.org>\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
@@ -21,7 +20,7 @@ msgstr ""
 
 #: ../../liaison/index.md:1
 msgid "Liaison Core ↔ Agent"
-msgstr ""
+msgstr "Core ↔ Agent liaison"
 
 #: ../../liaison/index.md:3
 msgid ""
@@ -30,18 +29,26 @@ msgid ""
 "Objectif : pouvoir répondre vite à deux questions qui reviennent à chaque"
 " revue du contrat :"
 msgstr ""
+"The contract (`embewi-contract-v2.md`) specifies **what**; this section "
+"links what's written there to **where** it's implemented, on each side. "
+"Goal: being able to quickly answer two questions that come up at every "
+"contract review:"
 
 #: ../../liaison/index.md:7
 msgid ""
 "une section `[NORMATIF]` a-t-elle bien une contrepartie code des deux "
 "côtés (ou une raison documentée de ne pas en avoir) ?"
 msgstr ""
+"does a `[NORMATIVE]` section actually have a code counterpart on both "
+"sides (or a documented reason not to)?"
 
 #: ../../liaison/index.md:9
 msgid ""
 "une modification du contrat touche-t-elle un seul repo ou les deux, et où"
 " en est-on de son implémentation ?"
 msgstr ""
+"does a contract change touch one repo or both, and where does its "
+"implementation currently stand?"
 
 #: ../../liaison/index.md:19
 msgid ""
@@ -52,6 +59,12 @@ msgid ""
 "chaque composant (`embewi-core-design.md`, doc Sphinx de l'agent) — il "
 "pointe vers eux."
 msgstr ""
+"**Scope.** This folder lives in `embewi` (the contract), not in `embewi-"
+"core` or `embewi-agent-esp`: it's the only place that sees both repos at"
+" once without duplicating their respective implementation docs (see the"
+" principle on the home page). It does not replace each component's "
+"detailed design (`embewi-core-design.md`, the agent's Sphinx docs) — it "
+"points to them."
 
 #: ../../liaison/index.md:26
 msgid ""
@@ -62,10 +75,16 @@ msgid ""
 "un écart pré-existant ont été trouvés à cet audit : voir « Écarts "
 "complémentaires » dans `tracabilite.md`."
 msgstr ""
+"**Reliability of agent references.** Agent column audited by reading "
+"the code in `embewi-agent-esp` on **2026-07-27** (see `tracabilite.md`)"
+" — the paths/lines cited are verified as of that date, no guarantee "
+"beyond it (no automated cross-repo CI check). One correction and one "
+"pre-existing gap were found during that audit: see \"Additional gaps\" "
+"in `tracabilite.md`."
 
 #: ../../liaison/issues-cross-repo.md:1
 msgid "Suivi des issues cross-repo"
-msgstr ""
+msgstr "Cross-repo issue tracking"
 
 #: ../../liaison/issues-cross-repo.md:3
 msgid ""
@@ -74,6 +93,10 @@ msgid ""
 "(vocabulaire, clarification) n'a pas besoin d'entrée ici — seulement "
 "celles qui laissent du travail de code derrière elles."
 msgstr ""
+"Decisions or fixes that touch the contract **and** at least one of the "
+"two implementation repos. A purely contractual issue (vocabulary, "
+"clarification) doesn't need an entry here — only ones that leave code "
+"work behind them."
 
 #: ../../liaison/issues-cross-repo.md:8
 msgid ""
@@ -81,30 +104,32 @@ msgid ""
 "la revue de contrat sont toutes terminées (Core **et** agent, cf. tableau"
 " ci-dessous)."
 msgstr ""
+"No active issue at the moment — issues 1-6 identified during the "
+"contract review are all done (Core **and** agent, see table below)."
 
 #: ../../liaison/issues-cross-repo.md:12
 msgid "Issues terminées (toutes cases applicables ✔)"
-msgstr ""
+msgstr "Completed issues (all applicable boxes ✔)"
 
 #: ../../liaison/issues-cross-repo.md
 msgid "#"
-msgstr ""
+msgstr "#"
 
 #: ../../liaison/issues-cross-repo.md
 msgid "Titre"
-msgstr ""
+msgstr "Title"
 
 #: ../../liaison/issues-cross-repo.md
 msgid "Ce qui a été fait"
-msgstr ""
+msgstr "What was done"
 
 #: ../../liaison/issues-cross-repo.md
 msgid "1"
-msgstr ""
+msgstr "1"
 
 #: ../../liaison/issues-cross-repo.md
 msgid "Rotation de token — rétention `McuSecret.previousToken`"
-msgstr ""
+msgstr "Token rotation — `McuSecret.previousToken` retention"
 
 #: ../../liaison/issues-cross-repo.md
 #, python-brace-format
@@ -121,14 +146,25 @@ msgid ""
 "(controller), `TestHandleHeartbeat_{Previous,Current}Token_*` "
 "(heartbeat)."
 msgstr ""
+"Core (2026-07-23): `internal/heartbeat/server.go` (`validateToken` "
+"accepts `token`/`previousToken`, `clearPreviousToken` on confirmation) +"
+" `internal/controller/mcunode_controller.go` (`reconcileTokenRotation`, "
+"replays `POST /token` until confirmed, Events "
+"`TokenRotationApplied`/`TokenRotationFailed`). Trigger: atomic write of "
+"`data[\"token\"]`+`data[\"previousToken\"]` in the Secret by the "
+"operator/GitOps (documented on `McuNodeSpec.TokenRef`, "
+"`api/v1alpha1/mcunode_types.go`). No agent change (still a single "
+"`POST /token` received, as before). Tests: `TestReconcile_TokenRotation_*`"
+" (controller), `TestHandleHeartbeat_{Previous,Current}Token_*` "
+"(heartbeat)."
 
 #: ../../liaison/issues-cross-repo.md
 msgid "3"
-msgstr ""
+msgstr "3"
 
 #: ../../liaison/issues-cross-repo.md
 msgid "`heartbeat.ip` pilote l'EndpointSlice → primitive de redirection de trafic"
-msgstr ""
+msgstr "`heartbeat.ip` drives the EndpointSlice → traffic-redirection primitive"
 
 #: ../../liaison/issues-cross-repo.md
 msgid ""
@@ -137,42 +173,49 @@ msgid ""
 " heartbeat ni bloquer l'EndpointSlice. Pas de changement agent. Test : "
 "`TestHandleHeartbeat_IPMismatch_EmitsEvent`."
 msgstr ""
+"Core (2026-07-23): `internal/heartbeat/server.go` compares `hb.IP` to "
+"the TCP source IP, emits the `HeartbeatIPMismatch` Event (Warning) "
+"without rejecting the heartbeat or blocking the EndpointSlice. No agent"
+" change. Test: `TestHandleHeartbeat_IPMismatch_EmitsEvent`."
 
 #: ../../liaison/issues-cross-repo.md
 msgid "5"
-msgstr ""
+msgstr "5"
 
 #: ../../liaison/issues-cross-repo.md
 msgid "`POST /config` — restriction de la sentinelle `\"\"`"
-msgstr ""
+msgstr "`POST /config` — restriction on the `\"\"` sentinel"
 
 #: ../../liaison/issues-cross-repo.md
 msgid ""
 "Documentation seule (§4a du contrat) — pas de travail de code, converge "
 "dès la rédaction du contrat."
 msgstr ""
+"Documentation only (contract §4a) — no code work, converges as soon as "
+"the contract wording lands."
 
 #: ../../liaison/issues-cross-repo.md
 msgid "6"
-msgstr ""
+msgstr "6"
 
 #: ../../liaison/issues-cross-repo.md
 msgid "§8b (métriques Prometheus) dans le contrat transverse"
-msgstr ""
+msgstr "§8b (Prometheus metrics) in the cross-cutting contract"
 
 #: ../../liaison/issues-cross-repo.md
 msgid ""
 "Décision documentaire seule (page d'accueil reformulée) — pas de travail "
 "de code."
 msgstr ""
+"Documentation-only decision (home page reworded) — no code work."
 
 #: ../../liaison/issues-cross-repo.md
 msgid "2"
-msgstr ""
+msgstr "2"
 
 #: ../../liaison/issues-cross-repo.md
 msgid "NTP fail-closed → device silencieux"
-msgstr ""
+msgstr "NTP fail-closed → silent device"
 
 #: ../../liaison/issues-cross-repo.md
 msgid ""
@@ -194,14 +237,31 @@ msgid ""
 "n'était vérifiée dans aucun état ; activé en prod "
 "(`sdkconfig.defaults.prod`)."
 msgstr ""
+"Core (2026-07-23): `internal/heartbeat/server.go` — "
+"`HeartbeatPayload.Reason`, `ready` forced to `false` if "
+"`reason==\"clock_unsynced\"` even when "
+"`state=running`+`ota_validated=true`, dedicated `Ready/ClockUnsynced` "
+"condition (distinct from `HeartbeatTimeout`/`DeviceNotReady`), "
+"`LastHeartbeat` still updated (no silence, §2). Tests: "
+"`TestHandleHeartbeat_ClockUnsynced_NotReady`, "
+"`TestHandleHeartbeat_NoReason_StillReady`. Agent (2026-07-27): "
+"`main/embewi_heartbeat.c` emits `reason:\"clock_unsynced\"` while "
+"`!embewi_time_is_set()` and switches to `embewi_tls_relaxed_post()` "
+"(`main/embewi_tls_relaxed.c`, new — low-level mbedTLS, "
+"`VERIFY_OPTIONAL` + tolerance limited to "
+"`BADCERT_EXPIRED`/`BADCERT_FUTURE`, chain/CN always verified). "
+"Pre-existing gap fixed along the way: `CONFIG_MBEDTLS_HAVE_TIME_DATE` "
+"wasn't enabled in any build profile → the Core cert's temporal validity"
+" was never checked in any state; enabled in production "
+"(`sdkconfig.defaults.prod`)."
 
 #: ../../liaison/issues-cross-repo.md
 msgid "4"
-msgstr ""
+msgstr "4"
 
 #: ../../liaison/issues-cross-repo.md
 msgid "Découverte de version d'API (`api_versions` dans `GET /info`)"
-msgstr ""
+msgstr "API version discovery (`api_versions` in `GET /info`)"
 
 #: ../../liaison/issues-cross-repo.md
 msgid ""
@@ -219,16 +279,31 @@ msgid ""
 "Agent (2026-07-27) : `main/embewi_http.c` (`h_info`) émet "
 "`\"api_versions\":[\"v1alpha1\"]`."
 msgstr ""
+"Core (2026-07-25): `internal/agent/client.go` — "
+"`InfoResponse.ApiVersions`, `agent.NegotiateAPIVersion()` (highest "
+"common version; field absent → `v1alpha1` assumed, per §4); "
+"`internal/controller/mcudeployment_controller.go` (`persistNodeInfo` "
+"negotiates on every `GET /info` in `phasePreparing`/`phaseActivating`, "
+"stores the result in `McuNode.Status.ApiVersion`, negotiation failure →"
+" `dep.fail(\"APIVersionUnsupported\", …)` + Warning Event, blocks the "
+"deployment instead of attempting an incompatible protocol). Tests: "
+"`TestNegotiateAPIVersion_*` (agent), "
+"`TestPhasePreparing_UnsupportedAPIVersion_Fails`, "
+"`TestPhasePreparing_APIVersionAbsent_NegotiatesV1Alpha1` (controller). "
+"Agent (2026-07-27): `main/embewi_http.c` (`h_info`) emits "
+"`\"api_versions\":[\"v1alpha1\"]`."
 
 #: ../../liaison/issues-cross-repo.md:23
 msgid "Convention"
-msgstr ""
+msgstr "Convention"
 
 #: ../../liaison/issues-cross-repo.md:25
 msgid ""
 "**Contrat** : ✅ si la section normative est écrite et fusionnée dans "
 "`embewi-contract-v2.md` ; ⬜ sinon."
 msgstr ""
+"**Contract**: ✅ if the normative section is written and merged into "
+"`embewi-contract-v2.md`; ⬜ otherwise."
 
 #: ../../liaison/issues-cross-repo.md:27
 msgid ""
@@ -236,12 +311,17 @@ msgid ""
 "le comportement spécifié ; ✔ une fois mergé côté repo concerné (lier le "
 "commit/PR dans une note à droite de la case le jour où elle passe à ✔)."
 msgstr ""
+"**`embewi-core` / `embewi-agent-esp`**: ⬜ as long as no code covers the"
+" specified behavior; ✔ once merged in the relevant repo (link the "
+"commit/PR in a note next to the box the day it flips to ✔)."
 
 #: ../../liaison/issues-cross-repo.md:30
 msgid ""
 "Une ligne reste dans ce tableau tant qu'au moins une case n'est pas ✔ ; à"
 " retirer (ou archiver) une fois les trois colonnes converties."
 msgstr ""
+"A row stays in this table as long as at least one box isn't ✔; remove "
+"(or archive) it once all three columns have converted."
 
 #: ../../liaison/issues-cross-repo.md:32
 msgid ""
@@ -249,10 +329,13 @@ msgid ""
 "déborde sur `embewi-core` ou `embewi-agent-esp` — avant même que "
 "l'implémentation ne commence."
 msgstr ""
+"Add a row as soon as a contract review identifies a gap that spills "
+"over into `embewi-core` or `embewi-agent-esp` — even before "
+"implementation starts."
 
 #: ../../liaison/tracabilite.md:1
 msgid "Matrice de traçabilité"
-msgstr ""
+msgstr "Traceability matrix"
 
 #: ../../liaison/tracabilite.md:3
 msgid ""
@@ -268,6 +351,17 @@ msgid ""
 "mais le pin ci-dessus référence délibérément `v1.0.0`, pas `main`, pour "
 "rester cohérent avec le tag). Trois passes :"
 msgstr ""
+"**Core** column verified by reading the code in `embewi-core`, last "
+"full audit **2026-07-23** (see additional gaps at the bottom of the "
+"page). **Agent** column verified by reading the code in `embewi-agent-"
+"esp` @ [`v1.0.0`](https://github.com/iobewi/embewi-agent-"
+"esp/releases/tag/v1.0.0) (commit [`a5633ac`](https://github.com/iobewi"
+"/embewi-agent-esp/commit/a5633ac) — pinned to the release tag, not "
+"`main`, to stay accurate after all three repositories moved to v1.0.0. "
+"A commit `f173003` exists after this tag on `main` — a versioning "
+"clarification note in `CHANGELOG.md` only, no code change — but the pin"
+" above deliberately references `v1.0.0`, not `main`, to stay consistent"
+" with the tag). Three passes:"
 
 #: ../../liaison/tracabilite.md:14
 msgid ""
@@ -276,6 +370,10 @@ msgid ""
 "ligne §3 citait TWDT (watchdog matériel) pour la deadline "
 "`pending_verify` — le code utilise en réalité un `esp_timer` logiciel."
 msgstr ""
+"**2026-07-27** (targeted at issues 1-4 + §3): dev build + prod build "
+"compiled successfully to validate the affected rows. Correction: the §3"
+" row cited TWDT (hardware watchdog) for the `pending_verify` deadline —"
+" the code actually uses a software `esp_timer`."
 
 #: ../../liaison/tracabilite.md:18
 msgid ""
@@ -284,6 +382,10 @@ msgid ""
 " trouvé : `idf_incompatible` (table §4b) jamais émis — `idf_version` "
 "parsé depuis `/ota/prepare` mais jamais comparé."
 msgstr ""
+"**2026-07-28** (full sweep of the remaining rows, only the Agent column"
+" was still unverified / copied straight from the contract text). One "
+"gap found: `idf_incompatible` (§4b table) never emitted — "
+"`idf_version` parsed from `/ota/prepare` but never compared."
 
 #: ../../liaison/tracabilite.md:22
 msgid ""
@@ -297,26 +399,36 @@ msgid ""
 "`test_idf_version_compatible` (`test/host/test_parse.c`, +8 assertions, "
 "123 au total, vérifiées en local)."
 msgstr ""
+"**2026-07-28, fix**: `idf_incompatible` implemented agent-side "
+"(`embewi_idf_version_compatible`, `main/embewi_parse.c:131-137` — "
+"compares the declared IDF major version to the device's "
+"`ESP_IDF_VERSION_MAJOR`, fail-safe on invalid format), wired into "
+"`embewi_ota_prepare` (`main/embewi_ota.c:117-119`). The Core already "
+"mapped `idf_incompatible` → `OTARejectedIdf` Event from the start "
+"(never reached for lack of agent emission) — loop closed with nothing "
+"to touch Core-side. Tests: `test_idf_version_compatible` "
+"(`test/host/test_parse.c`, +8 assertions, 123 total, verified "
+"locally)."
 
 #: ../../liaison/tracabilite.md
 msgid "Section contrat"
-msgstr ""
+msgstr "Contract section"
 
 #: ../../liaison/tracabilite.md
 msgid "Core (`embewi-core`)"
-msgstr ""
+msgstr "Core (`embewi-core`)"
 
 #: ../../liaison/tracabilite.md
 msgid "Agent (`embewi-agent-esp`)"
-msgstr ""
+msgstr "Agent (`embewi-agent-esp`)"
 
 #: ../../liaison/tracabilite.md
 msgid "Statut"
-msgstr ""
+msgstr "Status"
 
 #: ../../liaison/tracabilite.md
 msgid "§1 Token Bearer, transport HTTPS"
-msgstr ""
+msgstr "§1 Bearer token, HTTPS transport"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -324,6 +436,9 @@ msgid ""
 "`subtle.ConstantTimeCompare`) ; `internal/agent/client.go:87` (header "
 "`Authorization: Bearer` sur tous les appels inbound)"
 msgstr ""
+"`internal/heartbeat/server.go:152-178` (`validateToken`, "
+"`subtle.ConstantTimeCompare`); `internal/agent/client.go:87` "
+"(`Authorization: Bearer` header on all inbound calls)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -334,14 +449,20 @@ msgid ""
 "(`CONFIG_EMBEWI_VERIFY_CORE_CERT`) — détail dans `embewi-prod-"
 "security.md` (agent)"
 msgstr ""
+"✔ `main/embewi_http.c:47-57` (`authorized`, constant-time comparison on "
+"all endpoints); `sdkconfig.defaults.prod:19` "
+"(`CONFIG_SECURE_BOOT_V2_ENABLED`), `:29` "
+"(`CONFIG_SECURE_FLASH_ENC_ENABLED`), `:51` "
+"(`CONFIG_EMBEWI_VERIFY_CORE_CERT`) — details in `embewi-prod-"
+"security.md` (agent)"
 
 #: ../../liaison/tracabilite.md
 msgid "Core ✔ ; agent ✔"
-msgstr ""
+msgstr "Core ✔; agent ✔"
 
 #: ../../liaison/tracabilite.md
 msgid "§1 Vérification signature (rôle « efficacité » du Core, tableau §1)"
-msgstr ""
+msgstr "§1 Signature verification (Core's \"efficiency\" role, §1 table)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -357,6 +478,17 @@ msgid ""
 "protège le digest *déclaré*, le re-hash protège la correspondance "
 "digest↔octets réels"
 msgstr ""
+"✔ (2026-07-25) `internal/oci/client.go`: `WithTrustedPublicKey` "
+"(Ed25519) + `verifySignature` verify the `embewi.io/signature` manifest"
+" annotation before returning `FirmwareMeta` — opt-in via "
+"`OCI_TRUSTED_PUBLIC_KEY`, no-op if absent (dev/MVP posture). ✔ "
+"`StreamBlob` (`*oci.BlobStream`) re-hashes the bytes actually received "
+"on the fly and compares them to the expected digest (`Err()` → "
+"`ErrBlobDigestMismatch`); `phaseWriting` "
+"(`mcudeployment_controller.go`) checks this result after `OTAWrite`, "
+"emits `OTABlobDigestMismatch` and does not advance to Activating on "
+"mismatch — the signature protects the *declared* digest, the re-hash "
+"protects the digest↔actual-bytes correspondence"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -366,34 +498,43 @@ msgid ""
 "(`embewi_ota_write_finish:160-186`, `digest_mismatch` si divergence) — "
 "aucune relecture flash après coup"
 msgstr ""
+"✔ Only real verification of the written binary: incremental SHA-256 "
+"(PSA crypto API) as chunks are received (`main/embewi_ota.c:25,131-"
+"155`), compared to the expected digest at finalization "
+"(`embewi_ota_write_finish:160-186`, `digest_mismatch` on mismatch) — no"
+" flash re-read afterward"
 
 #: ../../liaison/tracabilite.md
 msgid "§1 Rayon d'action d'un token compromis (issue 3)"
-msgstr ""
+msgstr "§1 Blast radius of a compromised token (issue 3)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
 "✔ `internal/heartbeat/server.go` (comparaison `hb.IP`/`tcpIP`, Event "
 "`HeartbeatIPMismatch`) — cf. ligne §8 ci-dessous"
 msgstr ""
+"✔ `internal/heartbeat/server.go` (`hb.IP`/`tcpIP` comparison, "
+"`HeartbeatIPMismatch` Event) — see §8 row below"
 
 #: ../../liaison/tracabilite.md
 msgid "—"
-msgstr ""
+msgstr "—"
 
 #: ../../liaison/tracabilite.md
 msgid "Core ✔"
-msgstr ""
+msgstr "Core ✔"
 
 #: ../../liaison/tracabilite.md
 msgid "§1a Enrôlement, identité device"
-msgstr ""
+msgstr "§1a Enrollment, device identity"
 
 #: ../../liaison/tracabilite.md
 msgid ""
 "`api/v1alpha1/mcunode_types.go:31-39` (`TokenRef`), "
 "`internal/controller/mcunode_controller.go`"
 msgstr ""
+"`api/v1alpha1/mcunode_types.go:31-39` (`TokenRef`), "
+"`internal/controller/mcunode_controller.go`"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -401,10 +542,14 @@ msgid ""
 "(`:31`), fenêtre bornée à 10 min (`AP_PORTAL_TIMEOUT_MS:47`), fallback "
 "`node_id` dérivé de la MAC si NVS vide (`embewi_node_id_load:478-494`)"
 msgstr ""
+"✔ `main/embewi_provision.c`: AP captive portal, NVS `embewi_prov` "
+"(`:31`), window bounded to 10 min (`AP_PORTAL_TIMEOUT_MS:47`), "
+"`node_id` fallback derived from the MAC if NVS is empty "
+"(`embewi_node_id_load:478-494`)"
 
 #: ../../liaison/tracabilite.md
 msgid "§1a Rejet d'un `node_id` en double"
-msgstr ""
+msgstr "§1a Rejection of a duplicate `node_id`"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -414,20 +559,28 @@ msgid ""
 "`DuplicateNodeID` sur chaque objet concerné. Pas de webhook d'unicité "
 "(validation a posteriori au heartbeat, pas à la création du McuNode)"
 msgstr ""
+"✔ (2026-07-25) `findNode` (`internal/heartbeat/server.go`) detects >1 "
+"`McuNode` matching `spec.nodeId`, refuses to attach the heartbeat to "
+"either one (fail-safe, no silent pick-the-first), emits a "
+"`DuplicateNodeID` Event on each affected object. No uniqueness webhook "
+"(validation happens after the fact, at heartbeat time, not at McuNode "
+"creation)"
 
 #: ../../liaison/tracabilite.md
 msgid "— l'agent s'annonce, ne déduplique pas (attendu)"
-msgstr ""
+msgstr "— the agent announces itself, doesn't deduplicate (expected)"
 
 #: ../../liaison/tracabilite.md
 msgid "§2 États de l'agent"
-msgstr ""
+msgstr "§2 Agent states"
 
 #: ../../liaison/tracabilite.md
 msgid ""
 "`internal/heartbeat/server.go` (`validNodeStates`, rejette en 400 tout "
 "`state` hors enum)"
 msgstr ""
+"`internal/heartbeat/server.go` (`validNodeStates`, rejects any `state` "
+"outside the enum with 400)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -437,10 +590,15 @@ msgid ""
 " rollback échoue), `:89-92` (self-check OK → "
 "`esp_ota_mark_app_valid_cancel_rollback` → `EMBEWI_RUNNING`)"
 msgstr ""
+"✔ `main/embewi_agent.h:17-22` (enum), transitions in "
+"`main/embewi_selfcheck.c`: `:71-77` (self-check KO → `EMBEWI_ROLLBACK` "
+"→ `esp_ota_mark_app_invalid_rollback_and_reboot`, or `EMBEWI_FAILED` if"
+" the rollback fails), `:89-92` (self-check OK → "
+"`esp_ota_mark_app_valid_cancel_rollback` → `EMBEWI_RUNNING`)"
 
 #: ../../liaison/tracabilite.md
 msgid "§3 Séquence OTA"
-msgstr ""
+msgstr "§3 OTA sequence"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -449,6 +607,10 @@ msgid ""
 "`internal/agent/client.go` (`OTAPrepare:175-188`, `OTAWrite`, "
 "`OTAActivate:367-379`)"
 msgstr ""
+"`internal/controller/mcudeployment_controller.go:29` (`ConfirmTimeout`),"
+" `:74-114` (phase dispatch), `:464-490` (`phaseActivating`); "
+"`internal/agent/client.go` (`OTAPrepare:175-188`, `OTAWrite`, "
+"`OTAActivate:367-379`)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -461,16 +623,26 @@ msgid ""
 "précisément parce qu'il survit à une task qui hang (contrairement au TWDT"
 " qui watchdogue des tasks, pas un délai applicatif)"
 msgstr ""
+"✔ (verified 2026-07-27) `esp_ota_set_boot_partition` "
+"(`main/embewi_ota.c:230`), `esp_ota_mark_app_valid_cancel_rollback` "
+"(`main/embewi_selfcheck.c:89`). ⚠ correction: the contract cites a "
+"hardware watchdog (TWDT) for the `pending_verify` deadline — the agent "
+"actually uses a software `esp_timer` "
+"(`main/embewi_selfcheck.c:115-121`) → `esp_restart()` (`:51`), chosen "
+"precisely because it survives a hung task (unlike the TWDT, which "
+"watchdogs tasks, not an application-level delay)"
 
 #: ../../liaison/tracabilite.md
 msgid "§4 Endpoints inbound `/info /health /config /reboot`"
-msgstr ""
+msgstr "§4 Inbound endpoints `/info /health /config /reboot`"
 
 #: ../../liaison/tracabilite.md
 msgid ""
 "`internal/agent/client.go` (`GetInfo:127`, `GetHealth:145`, "
 "`GetConfig:317`, `PostConfig:331`, `PostReboot:348`)"
 msgstr ""
+"`internal/agent/client.go` (`GetInfo:127`, `GetHealth:145`, "
+"`GetConfig:317`, `PostConfig:331`, `PostReboot:348`)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -478,22 +650,31 @@ msgid ""
 "`h_config_get:441-458`, `h_config_post:472-497`, `h_reboot:500-507` — "
 "routes enregistrées `:572-586`"
 msgstr ""
+"✔ `main/embewi_http.c`: `h_info:113-145`, `h_health:148-162`, "
+"`h_config_get:441-458`, `h_config_post:472-497`, `h_reboot:500-507` — "
+"routes registered `:572-586`"
 
 #: ../../liaison/tracabilite.md
 msgid ""
 "Core ✔ (implémentés) ; ⚠ `GetHealth` n'est appelé **nulle part** côté "
 "Core hors tests (contrat le dit optionnel, donc pas bloquant) ; agent ✔"
 msgstr ""
+"Core ✔ (implemented); ⚠ `GetHealth` is called **nowhere** Core-side "
+"outside tests (the contract marks it optional, so not blocking); agent"
+" ✔"
 
 #: ../../liaison/tracabilite.md
 msgid "§4 `POST /ota/prepare`, `/ota/activate`"
-msgstr ""
+msgstr "§4 `POST /ota/prepare`, `/ota/activate`"
 
 #: ../../liaison/tracabilite.md
 msgid ""
 "`internal/agent/client.go` (`OTAPrepare:175-188`, `OTAActivate:367-379`) "
 "; mapping Events conforme (`mcudeployment_controller.go:390-404`)"
 msgstr ""
+"`internal/agent/client.go` (`OTAPrepare:175-188`, "
+"`OTAActivate:367-379`); Event mapping compliant "
+"(`mcudeployment_controller.go:390-404`)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -503,10 +684,15 @@ msgid ""
 " `idf_incompatible` via `embewi_idf_version_compatible` depuis "
 "2026-07-28)"
 msgstr ""
+"✔ `main/embewi_http.c` (`h_ota_prepare:165-192`, "
+"`h_ota_activate:510-546`); compat logic in "
+"`main/embewi_ota.c:103-126` (`embewi_ota_prepare` — "
+"chip/layout/idf/size, `idf_incompatible` via "
+"`embewi_idf_version_compatible` since 2026-07-28)"
 
 #: ../../liaison/tracabilite.md
 msgid "§4 `PUT /ota/write` + Content-Range"
-msgstr ""
+msgstr "§4 `PUT /ota/write` + Content-Range"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -517,6 +703,12 @@ msgid ""
 "resync 416 (`written` reporté par le device) en ré-émettant uniquement le"
 " reliquat de la plage courante"
 msgstr ""
+"✔ (2026-07-27) `internal/agent/client.go` (`OTAWrite`/`putOTAChunk`): "
+"chunks into 64 KiB ranges (`otaChunkSize`), a network drop on a range "
+"retries the same buffered range up to 3 times (without retransmitting "
+"already-confirmed ranges, without re-touching the source OCI stream), "
+"handles the 416 resync (`written` reported by the device) by re-"
+"emitting only the remainder of the current range"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -526,16 +718,24 @@ msgid ""
 "— handle OTA + SHA-256 incrémental en statiques, survivent à une "
 "déconnexion TCP"
 msgstr ""
+"✔ `main/embewi_http.c:199-288` (`h_ota_write`: reads `Content-Range`, "
+"decides BEGIN/RESYNC/CONTINUE); pure logic host-tested in "
+"`main/embewi_parse.c:120-128` (`embewi_ota_plan`, `embewi_ota_is_final`)"
+" — OTA handle + incremental SHA-256 held in statics, survive a TCP "
+"disconnect"
 
 #: ../../liaison/tracabilite.md
 msgid "§4 `POST /token` (rotation)"
-msgstr ""
+msgstr "§4 `POST /token` (rotation)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
 "✔ `internal/controller/mcunode_controller.go` (`reconcileTokenRotation`, "
 "appelle `RotateToken()` tant que `previousToken` est présent)"
 msgstr ""
+"✔ `internal/controller/mcunode_controller.go` "
+"(`reconcileTokenRotation`, calls `RotateToken()` while `previousToken` "
+"is present)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -543,10 +743,13 @@ msgid ""
 " bascule runtime immédiate (`authorized()` exige le nouveau token dès la "
 "réponse envoyée)"
 msgstr ""
+"✔ `main/embewi_http.c:408-438` (`h_token`) — NVS commit before the "
+"response, immediate runtime switch (`authorized()` requires the new "
+"token as soon as the response is sent)"
 
 #: ../../liaison/tracabilite.md
 msgid "§4 `api_versions` (issue 4, nouveau)"
-msgstr ""
+msgstr "§4 `api_versions` (issue 4, new)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -557,6 +760,12 @@ msgid ""
 "`McuNode.Status.ApiVersion`, échec → `fail(\"APIVersionUnsupported\", …)`"
 " + Event)"
 msgstr ""
+"✔ `internal/agent/client.go` (`InfoResponse.ApiVersions`, "
+"`NegotiateAPIVersion` — highest common version, absent → `v1alpha1` "
+"assumed); `internal/controller/mcudeployment_controller.go` "
+"(`persistNodeInfo` negotiates on every `GET /info`, stores "
+"`McuNode.Status.ApiVersion`, failure → "
+"`fail(\"APIVersionUnsupported\", …)` + Event)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -564,10 +773,13 @@ msgid ""
 "`\"api_versions\":[\"v1alpha1\"]` (`EMBEWI_API_VERSION`, "
 "`main/embewi_agent.h:8`)"
 msgstr ""
+"✔ (2026-07-27) `main/embewi_http.c:129` (`h_info`) emits "
+"`\"api_versions\":[\"v1alpha1\"]` (`EMBEWI_API_VERSION`, "
+"`main/embewi_agent.h:8`)"
 
 #: ../../liaison/tracabilite.md
 msgid "§4 Rotation token — rétention `previousToken` (issue 1, nouveau)"
-msgstr ""
+msgstr "§4 Token rotation — `previousToken` retention (issue 1, new)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -578,16 +790,24 @@ msgid ""
 "atomique `token`+`previousToken` dans le Secret par l'opérateur/GitOps "
 "(pas d'auto-génération périodique côté Core)"
 msgstr ""
+"✔ `internal/heartbeat/server.go` (`validateToken` accepts "
+"`token`/`previousToken`, `clearPreviousToken` on confirmation); "
+"`internal/controller/mcunode_controller.go` (`reconcileTokenRotation` "
+"replays `POST /token` until confirmed). Trigger = atomic write of "
+"`token`+`previousToken` in the Secret by the operator/GitOps (no "
+"periodic auto-generation Core-side)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
 "— (aucun changement d'ordre côté agent : reçoit toujours un seul `POST "
 "/token`)"
 msgstr ""
+"— (no protocol change on the agent side: still receives a single "
+"`POST /token`)"
 
 #: ../../liaison/tracabilite.md
 msgid "§4 `POST /app/port`, `POST /tls/cert`"
-msgstr ""
+msgstr "§4 `POST /app/port`, `POST /tls/cert`"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -604,6 +824,19 @@ msgid ""
 "+ reboot si divergent, digest mis à jour seulement après reboot confirmé."
 " Tests : `TestReconcileDeployed_AppPort*`, `TestReconcileTLSCert_*`"
 msgstr ""
+"✔ (2026-07-28) Reconciliation wired up. `McuDeployment.Spec.AppPort` "
+"(`api/v1alpha1/mcudeployment_types.go`) — `reconcileAppPort` "
+"(`mcudeployment_controller.go`) compares to the observed port "
+"(`McuNode.Status.AppPort`), pushes if it diverges, no reboot required "
+"(agent hot-restarts), `Status.AppPort` updated immediately after a "
+"confirmed push. `McuNode.Spec.TLSSecretRef` (`SecretRef` to a "
+"`kubernetes.io/tls` Secret, `tls.crt`/`tls.key` — cert-manager "
+"compatible) — `reconcileTLSCert` (`mcunode_controller.go`) compares a "
+"sha256(cert+key) to `Status.TLSCertDigest` (tracked Core-side, no "
+"generation/active_generation equivalent for the cert on the agent "
+"side), push + reboot if it diverges, digest updated only after a "
+"confirmed reboot. Tests: `TestReconcileDeployed_AppPort*`, "
+"`TestReconcileTLSCert_*`"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -613,16 +846,23 @@ msgid ""
 "les `\\n` littéraux, sauvegarde NVS, effectif au prochain "
 "`embewi_http_start()`)"
 msgstr ""
+"✔ `main/embewi_http.c`: `h_app_port:291-316` (validates 1024-65535, "
+"saves to NVS, restarts the app service immediately without a device "
+"reboot); `h_tls_cert:344-402` (accepts `cert_pem`/`key_pem`, unescapes "
+"literal `\\n`, saves to NVS, effective at the next "
+"`embewi_http_start()`)"
 
 #: ../../liaison/tracabilite.md
 msgid "§4a Modèle de config en couches"
-msgstr ""
+msgstr "§4a Layered configuration model"
 
 #: ../../liaison/tracabilite.md
 msgid ""
 "`internal/controller/mcudeployment_controller.go:237-240` (limites 15/63 "
 "caractères validées avant push), `:254` (clés `_` filtrées)"
 msgstr ""
+"`internal/controller/mcudeployment_controller.go:237-240` (15/63-"
+"character limits validated before push), `:254` (`_` keys filtered)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -632,16 +872,25 @@ msgid ""
 "`embewi_cfg_bump_generation:88-101` ; filtrage clés `_*` côté agent dans "
 "`main/embewi_http.c:463-469` (`cfg_set_cb`) — symétrique au filtrage Core"
 msgstr ""
+"✔ `main/embewi_config.c`: `embewi_cfg_boot_init:29-42` (NVS snapshot "
+"frozen at boot = \"active\" config), `embewi_cfg_write:71-84` (`\"\"` "
+"erases the key — reset to the build default, see §4a NORMATIVE), "
+"`embewi_cfg_bump_generation:88-101`; `_*` key filtering agent-side in "
+"`main/embewi_http.c:463-469` (`cfg_set_cb`) — symmetric with Core-side "
+"filtering"
 
 #: ../../liaison/tracabilite.md
 msgid "§4b Codes d'erreur → Events K8s"
-msgstr ""
+msgstr "§4b Error codes → K8s Events"
 
 #: ../../liaison/tracabilite.md
 msgid ""
 "`internal/controller/mcudeployment_controller.go:390-404` (prepare "
 "refusé), `:427-441` (write refusé) (`Recorder.Event`, vrais Events K8s)"
 msgstr ""
+"`internal/controller/mcudeployment_controller.go:390-404` (prepare "
+"rejected), `:427-441` (write rejected) (`Recorder.Event`, real K8s "
+"Events)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -651,6 +900,11 @@ msgid ""
 "`digest_mismatch`/`write_failed`/`ota_begin_failed`/`range_mismatch` "
 "(`main/embewi_http.c:216-280`)"
 msgstr ""
+"✔ Codes emitted match the §4b table: "
+"`chip_mismatch`/`layout_mismatch`/`idf_incompatible`/`busy`/`size_too_large`"
+" (`main/embewi_ota.c:110-121`), "
+"`digest_mismatch`/`write_failed`/`ota_begin_failed`/`range_mismatch` "
+"(`main/embewi_http.c:216-280`)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -658,10 +912,13 @@ msgid ""
 "`ConfigInvalid` (`errConfigMapNotFound`, `configFailReason()`, "
 "2026-07-25) ; agent ✔ — tous les codes couverts"
 msgstr ""
+"Core ✔ for prepare/write; ✔ `ConfigMapNotFound` distinct from "
+"`ConfigInvalid` (`errConfigMapNotFound`, `configFailReason()`, "
+"2026-07-25); agent ✔ — all codes covered"
 
 #: ../../liaison/tracabilite.md
 msgid "§5 Heartbeat / logs"
-msgstr ""
+msgstr "§5 Heartbeat / logs"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -669,6 +926,9 @@ msgid ""
 "`HeartbeatPayload:62-81`), filtrage `temp_celsius=-127.0` (`:332`, "
 "`internal/metrics/metrics.go:140-142`)"
 msgstr ""
+"`internal/heartbeat/server.go` (`handleHeartbeat`, "
+"`HeartbeatPayload:62-81`), `temp_celsius=-127.0` filtering (`:332`, "
+"`internal/metrics/metrics.go:140-142`)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -677,10 +937,14 @@ msgid ""
 "`-127.0f` si capteur indispo, `:65-69`), `embewi_log_emit:189-197` (POST "
 "`/v1alpha1/logs`), `main/embewi_time.c` (SNTP)"
 msgstr ""
+"✔ `main/embewi_heartbeat.c`: `heartbeat_task:152-181` (POST every 5 s, "
+"all required + optional fields — `temp_celsius` sentinel `-127.0f` if "
+"the sensor is unavailable, `:65-69`), `embewi_log_emit:189-197` (POST "
+"`/v1alpha1/logs`), `main/embewi_time.c` (SNTP)"
 
 #: ../../liaison/tracabilite.md
 msgid "§5 Canal de détresse NTP (issue 2, nouveau)"
-msgstr ""
+msgstr "§5 NTP distress channel (issue 2, new)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -689,6 +953,11 @@ msgid ""
 "`state=running`+`ota_validated=true`), condition `Ready/ClockUnsynced` "
 "dédiée, `LastHeartbeat` mis à jour quand même (pas de silence, §2)"
 msgstr ""
+"✔ `internal/heartbeat/server.go`: `HeartbeatPayload.Reason`, `ready` "
+"forced to `false` if `reason==\"clock_unsynced\"` (even if "
+"`state=running`+`ota_validated=true`), dedicated "
+"`Ready/ClockUnsynced` condition, `LastHeartbeat` still updated (no "
+"silence, §2)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -715,14 +984,36 @@ msgid ""
 " jamais silencieux) est garanti ; ce flux logs, non, pendant la fenêtre "
 "`clock_unsynced`"
 msgstr ""
+"✔ (2026-07-27) `main/embewi_heartbeat.c:177` emits "
+"`reason:\"clock_unsynced\"` while `!embewi_time_is_set()`; `:106-110` "
+"switches `emit_to()` over to `embewi_tls_relaxed_post()` (new file "
+"`main/embewi_tls_relaxed.c`) — low-level mbedTLS, "
+"`MBEDTLS_SSL_VERIFY_OPTIONAL` + manual post-handshake inspection: only "
+"`BADCERT_EXPIRED`/`BADCERT_FUTURE` tolerated, chain/CN remain blocking "
+"(`embewi_ssl_get_verify_result`). Necessary because "
+"`esp_http_client`/esp-tls forces `VERIFY_REQUIRED` as soon as a CA is "
+"configured, with no hook to relax only the date check. Trade-off: "
+"`CONFIG_MBEDTLS_HAVE_TIME_DATE=y` enabled in production "
+"(`sdkconfig.defaults.prod:57`) — **pre-existing gap discovered during "
+"implementation**: this check was until then silently disabled in ALL "
+"states (default ESP-IDF behavior), so the strict post-sync check "
+"didn't exist before this fix either. **Deliberately limited scope**: "
+"the distress channel covers the heartbeat and `embewi_log_emit()` "
+"(OTA/lifecycle events via HTTPS, both through `emit_to()`) but **not**"
+" `ESP_LOGx` → WebSocket streaming (`embewi_log.c`, "
+"`esp_websocket_client`) — no equivalent `VERIFY_OPTIONAL` hook on the "
+"WS client side, and this flow is already best-effort/lossy by design "
+"(see the comment at the top of `embewi_log.c`). The heartbeat (§2, "
+"never silent) is guaranteed; this log flow isn't, during the "
+"`clock_unsynced` window"
 
 #: ../../liaison/tracabilite.md
 msgid "Core ✔ ; agent ✔ (portée : heartbeat + logs HTTPS, pas le flux WS)"
-msgstr ""
+msgstr "Core ✔; agent ✔ (scope: heartbeat + HTTPS logs, not the WS flow)"
 
 #: ../../liaison/tracabilite.md
 msgid "§6 Idempotence (reprise sur crash Core, OTA)"
-msgstr ""
+msgstr "§6 Idempotence (resumption after a Core crash, OTA)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -730,6 +1021,9 @@ msgid ""
 "(`phasePreparing` relit `staged.state`), `:464-490` (`phaseActivating` "
 "anti-double-activate)"
 msgstr ""
+"`internal/controller/mcudeployment_controller.go:339-375` "
+"(`phasePreparing` re-reads `staged.state`), `:464-490` "
+"(`phaseActivating` anti-double-activate)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -737,10 +1031,13 @@ msgid ""
 "`embewi_staged_load`, `main/embewi_ota.c:30`) — `none/written/activating`"
 " conformes"
 msgstr ""
+"✔ `staged` exposed by `h_info` (`main/embewi_http.c:113-145`, read via "
+"`embewi_staged_load`, `main/embewi_ota.c:30`) — `none/written/activating`"
+" as specified"
 
 #: ../../liaison/tracabilite.md
 msgid "§6 Idempotence config (`generation` vs `active_generation`)"
-msgstr ""
+msgstr "§6 Config idempotence (`generation` vs `active_generation`)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -749,10 +1046,14 @@ msgid ""
 "repush (`mcudeployment_controller.go:262-270`). `reconcileConfigOnly` "
 "reboote dans ce cas comme après un push classique."
 msgstr ""
+"✔ (2026-07-25) `pushConfigIfNeeded` also compares `ActiveGeneration < "
+"Generation` when nvs already matches → `needsReboot=true` without a "
+"re-push (`mcudeployment_controller.go:262-270`). `reconcileConfigOnly` "
+"reboots in this case just like after a regular push."
 
 #: ../../liaison/tracabilite.md
 msgid "§7 Politique de binding"
-msgstr ""
+msgstr "§7 Binding policy"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -760,14 +1061,17 @@ msgid ""
 "(`NoDeviceMatched`, `AmbiguousBinding`), `:165-179` (`checkNotBusy`, "
 "first-bound-wins)"
 msgstr ""
+"`internal/controller/mcudeployment_controller.go:117-158` "
+"(`NoDeviceMatched`, `AmbiguousBinding`), `:165-179` (`checkNotBusy`, "
+"first-bound-wins)"
 
 #: ../../liaison/tracabilite.md
 msgid "— (résolution Core)"
-msgstr ""
+msgstr "— (Core-side resolution)"
 
 #: ../../liaison/tracabilite.md
 msgid "§7a McuConfigMap"
-msgstr ""
+msgstr "§7a McuConfigMap"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -775,22 +1079,30 @@ msgid ""
 "`internal/controller/mcudeployment_controller.go` "
 "(`pushConfigIfNeeded:225-278`, `:315-336` watch `configMapToDeployments`)"
 msgstr ""
+"`api/v1alpha1/mcuconfigmap_types.go`, "
+"`internal/controller/mcudeployment_controller.go` "
+"(`pushConfigIfNeeded:225-278`, `:315-336` watch "
+"`configMapToDeployments`)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
 "✔ `main/embewi_config.c` (namespace NVS `embewi_cfg`), merge-on-key dans "
 "`h_config_post`/`cfg_set_cb` (`main/embewi_http.c:463-497`)"
 msgstr ""
+"✔ `main/embewi_config.c` (NVS namespace `embewi_cfg`), merge-on-key in "
+"`h_config_post`/`cfg_set_cb` (`main/embewi_http.c:463-497`)"
 
 #: ../../liaison/tracabilite.md
 msgid "§8 EndpointSlice (`heartbeat.ip` → `addresses`, `ready`)"
-msgstr ""
+msgstr "§8 EndpointSlice (`heartbeat.ip` → `addresses`, `ready`)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
 "`internal/controller/mcunode_controller.go:202-255` "
 "(`reconcileEndpointSlice`)"
 msgstr ""
+"`internal/controller/mcunode_controller.go:202-255` "
+"(`reconcileEndpointSlice`)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -798,10 +1110,13 @@ msgid ""
 "depuis le netif à chaque heartbeat — rend le DHCP transparent pour le "
 "Core, cf. commentaire en tête de fonction)"
 msgstr ""
+"✔ `main/embewi_heartbeat.c:44-51` (`current_ip_str`, current STA IP "
+"read from the netif on every heartbeat — makes DHCP transparent for the"
+" Core, see the comment at the top of the function)"
 
 #: ../../liaison/tracabilite.md
 msgid "§8 Détection divergence `heartbeat.ip` (issue 3, nouveau)"
-msgstr ""
+msgstr "§8 `heartbeat.ip` divergence detection (issue 3, new)"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -809,10 +1124,13 @@ msgid ""
 "`Recorder.Eventf(..., \"HeartbeatIPMismatch\", ...)` — détection seule, "
 "pas de rejet)"
 msgstr ""
+"✔ `internal/heartbeat/server.go` (`tcpIP` vs `hb.IP`, "
+"`Recorder.Eventf(..., \"HeartbeatIPMismatch\", ...)` — detection only, "
+"no rejection)"
 
 #: ../../liaison/tracabilite.md
 msgid "§8a Conditions CRDs"
-msgstr ""
+msgstr "§8a CRD conditions"
 
 #: ../../liaison/tracabilite.md
 msgid ""
@@ -821,32 +1139,38 @@ msgid ""
 "`mcudeployment_controller.go` (`fail:607-629`, "
 "`setReadyCondition:634-654`, `setDeploymentConditions:657-694`)"
 msgstr ""
+"McuNode: `internal/heartbeat/server.go:336-373`, "
+"`internal/controller/mcunode_controller.go:103-128` — McuDeployment: "
+"`mcudeployment_controller.go` (`fail:607-629`, "
+"`setReadyCondition:634-654`, `setDeploymentConditions:657-694`)"
 
 #: ../../liaison/tracabilite.md
 msgid "— (opaque aux conditions K8s côté agent)"
-msgstr ""
+msgstr "— (opaque to K8s conditions on the agent side)"
 
 #: ../../liaison/tracabilite.md
 msgid "Core ✔ — tous les `reason` du contrat couverts"
-msgstr ""
+msgstr "Core ✔ — every `reason` in the contract is covered"
 
 #: ../../liaison/tracabilite.md
 msgid "§8b Métriques Prometheus"
-msgstr ""
+msgstr "§8b Prometheus metrics"
 
 #: ../../liaison/tracabilite.md
 msgid ""
 "`internal/metrics/metrics.go:14-52` (8 gauges), nettoyage cardinalité "
 "`:107-134` + finalizer McuNode"
 msgstr ""
+"`internal/metrics/metrics.go:14-52` (8 gauges), cardinality cleanup "
+"`:107-134` + McuNode finalizer"
 
 #: ../../liaison/tracabilite.md
 msgid "— (agent ignore Prometheus)"
-msgstr ""
+msgstr "— (agent has no idea Prometheus exists)"
 
 #: ../../liaison/tracabilite.md:60
 msgid "Écarts complémentaires identifiés à l'audit (2026-07-23)"
-msgstr ""
+msgstr "Additional gaps found during the audit (2026-07-23)"
 
 #: ../../liaison/tracabilite.md:62
 msgid ""
@@ -854,6 +1178,9 @@ msgid ""
 "contrat — donc pas dans `issues-cross-repo.md` (pas de travail agent "
 "attaché), mais à corriger côté Core :"
 msgstr ""
+"Found by reading the code, unrelated to issues 1-6 from the contract "
+"review — hence not in `issues-cross-repo.md` (no agent work attached), "
+"but needing a fix Core-side:"
 
 #: ../../liaison/tracabilite.md:66
 msgid ""
@@ -865,6 +1192,12 @@ msgid ""
 "`TestPhasePreparing_ConfigMapMissing_FailsWithConfigMapNotFound`, "
 "`TestPhasePreparing_ConfigMapInvalidValue_FailsWithConfigInvalid`."
 msgstr ""
+"✔ (2026-07-25) `ConfigMapNotFound` reason now emitted distinctly from "
+"`ConfigInvalid` — `errConfigMapNotFound` + `configFailReason()` "
+"(`mcudeployment_controller.go:36-48`), both call sites "
+"(`reconcileConfigOnly` and `phasePreparing`) now map correctly. Tests: "
+"`TestPhasePreparing_ConfigMapMissing_FailsWithConfigMapNotFound`, "
+"`TestPhasePreparing_ConfigMapInvalidValue_FailsWithConfigInvalid`."
 
 #: ../../liaison/tracabilite.md:72
 msgid ""
@@ -873,6 +1206,11 @@ msgid ""
 "`TestReconcileConfigOnly_ActiveGenerationBehind_RebootsWithoutRepush`, "
 "`TestReconcileConfigOnly_NVSDiverges_PushesAndReboots`."
 msgstr ""
+"✔ (2026-07-25) `active_generation` now compared to `generation` — see "
+"the §6 row above. Tests: "
+"`TestReconcileConfigOnly_GenerationsEqual_NoReboot`, "
+"`TestReconcileConfigOnly_ActiveGenerationBehind_RebootsWithoutRepush`, "
+"`TestReconcileConfigOnly_NVSDiverges_PushesAndReboots`."
 
 #: ../../liaison/tracabilite.md:76
 msgid ""
@@ -880,6 +1218,9 @@ msgid ""
 "— voir ligne §1a ci-dessus. Test : "
 "`TestHandleHeartbeat_DuplicateNodeID_Returns200AndSkipsUpdate`."
 msgstr ""
+"✔ (2026-07-25) Detection of a `node_id` duplicated across several "
+"`McuNode`s — see the §1a row above. Test: "
+"`TestHandleHeartbeat_DuplicateNodeID_Returns200AndSkipsUpdate`."
 
 #: ../../liaison/tracabilite.md:78
 msgid ""
@@ -890,6 +1231,12 @@ msgid ""
 "`TestPhaseWriting_OCIBlobDigestMismatch_DoesNotAdvanceToActivating` "
 "(`internal/controller/mcudeployment_controller_test.go`)."
 msgstr ""
+"✔ (2026-07-25) Ed25519 signature verification before the OTA transfer, "
+"and re-hashing the streamed blob against the declared digest — see the"
+" §1 row above. Tests: `TestResolveFirmware_TrustedKey_*`, "
+"`TestStreamBlob_*` (`internal/oci/client_test.go`), "
+"`TestPhaseWriting_OCIBlobDigestMismatch_DoesNotAdvanceToActivating` "
+"(`internal/controller/mcudeployment_controller_test.go`)."
 
 #: ../../liaison/tracabilite.md:83
 msgid ""
@@ -900,6 +1247,12 @@ msgid ""
 "`TestReconcileDeployed_AppPort*`, `TestReconcileTLSCert_*` "
 "(`internal/controller/*_test.go`)."
 msgstr ""
+"✔ (2026-07-27, reconciliation wired up on 2026-07-28) Client methods "
+"`PostAppPort`/`PostTLSCert` — see the §4 row above, now called by "
+"`reconcileAppPort`/`reconcileTLSCert`. Tests: `TestPostAppPort_*`, "
+"`TestPostTLSCert_SendsBody` (`internal/agent/client_test.go`), "
+"`TestReconcileDeployed_AppPort*`, `TestReconcileTLSCert_*` "
+"(`internal/controller/*_test.go`)."
 
 #: ../../liaison/tracabilite.md:89
 msgid ""
@@ -908,14 +1261,18 @@ msgid ""
 "`TestOTAWrite_ChunkResync416_*`, `TestOTAWrite_ChunkStalls416_*` "
 "(`internal/agent/client_test.go`)."
 msgstr ""
+"✔ (2026-07-27) `PUT /ota/write` chunked (64 KiB) with per-range retry —"
+" see the §4 row above. Tests: `TestOTAWrite_MultiChunk_*`, "
+"`TestOTAWrite_ChunkResync416_*`, `TestOTAWrite_ChunkStalls416_*` "
+"(`internal/agent/client_test.go`)."
 
 #: ../../liaison/tracabilite.md:94
 msgid "Écarts complémentaires identifiés à l'audit (2026-07-27, agent)"
-msgstr ""
+msgstr "Additional gaps found during the audit (2026-07-27, agent)"
 
 #: ../../liaison/tracabilite.md:96
 msgid "Trouvés en vérifiant la colonne Agent contre `embewi-agent-esp` :"
-msgstr ""
+msgstr "Found while verifying the Agent column against `embewi-agent-esp`:"
 
 #: ../../liaison/tracabilite.md:98
 msgid ""
@@ -924,6 +1281,10 @@ msgid ""
 "de code, doc seule ; le mécanisme réel est équivalent ou plus robuste, "
 "cf. commentaire `embewi_selfcheck.c`)."
 msgstr ""
+"✔ (2026-07-27) §3 row: the contract cites TWDT (hardware watchdog), the"
+" code uses a software `esp_timer` — fixed above (no code work, doc "
+"only; the actual mechanism is equivalent or more robust, see the "
+"`embewi_selfcheck.c` comment)."
 
 #: ../../liaison/tracabilite.md:102
 msgid ""
@@ -939,12 +1300,25 @@ msgid ""
 "`issues-cross-repo.md` : rattaché à l'issue 2 (même ligne §5 ci-dessus), "
 "le correctif code est le même commit."
 msgstr ""
+"✔ (2026-07-27) `CONFIG_MBEDTLS_HAVE_TIME_DATE` wasn't enabled in either"
+" build profile (`sdkconfig.defaults` / `sdkconfig.defaults.prod`) — "
+"ESP-IDF default = disabled. Consequence: the Core cert's temporal "
+"validity (`notBefore`/`notAfter`) wasn't checked in **any** state, not "
+"just during the `clock_unsynced` window. Enabled in production at the "
+"same time as the issue-2 implementation "
+"(`sdkconfig.defaults.prod:57`) — without which the distress channel "
+"would have had nothing to \"distress\": the strict check it's supposed"
+" to temporarily relax didn't exist. No separate entry in "
+"`issues-cross-repo.md`: attached to issue 2 (same §5 row above), the "
+"code fix is the same commit."
 
 #: ../../liaison/tracabilite.md:113
 msgid ""
 "Écarts complémentaires identifiés à l'audit (2026-07-28, agent — balayage"
 " complet)"
 msgstr ""
+"Additional gaps found during the audit (2026-07-28, agent — full "
+"sweep)"
 
 #: ../../liaison/tracabilite.md:115
 msgid ""
@@ -953,6 +1327,10 @@ msgid ""
 "ligne à ligne du texte déjà écrit contre le code réel de `embewi-agent-"
 "esp` @ `467feb3`) :"
 msgstr ""
+"Found while finishing verification of the Agent-column rows that "
+"remained unverified after the targeted 2026-07-27 pass (line-by-line "
+"comparison of the already-written text against the actual code in "
+"`embewi-agent-esp` @ `467feb3`):"
 
 #: ../../liaison/tracabilite.md:119
 msgid ""
@@ -967,6 +1345,17 @@ msgid ""
 "d'entrée dans `issues-cross-repo.md` (pas de contre-partie Core à toucher"
 " — le Core mappait déjà `idf_incompatible` → `OTARejectedIdf`)."
 msgstr ""
+"✔ (2026-07-28) `idf_incompatible` (§4b table) never emitted — "
+"`embewi_ota_prepare` (`main/embewi_ota.c:103-123`) validated "
+"`chip`/`partition_layout`/`size` but never compared "
+"`req->idf_version` (parsed in `main/embewi_http.c:174`, never read "
+"afterward). Fixed: `embewi_idf_version_compatible` "
+"(`main/embewi_parse.c:131-137`) compares the declared IDF major "
+"version to the device's, wired into `embewi_ota_prepare` "
+"(`main/embewi_ota.c:117-119`). Tests: `test_idf_version_compatible` "
+"(`test/host/test_parse.c`). No entry in `issues-cross-repo.md` (no "
+"Core-side counterpart to touch — the Core already mapped "
+"`idf_incompatible` → `OTARejectedIdf`)."
 
 #: ../../liaison/tracabilite.md:129
 msgid ""
@@ -978,12 +1367,21 @@ msgid ""
 "events`, `§5 heartbeat/logs`, `§6 idempotence`, `§7a McuConfigMap`, `§8 "
 "EndpointSlice ip`, `§1 digest incrémental agent`."
 msgstr ""
+"Every other row checked during this sweep matched exactly the text "
+"already written (no other divergence found): `#1 Token Bearer`, `§1a "
+"Enrollment`, `§2 States`, `§4 endpoints /info /health /config /reboot`,"
+" `§4 ota/prepare /ota/activate`, `§4 PUT /ota/write`, `§4 POST "
+"/token`, `§4 POST /app/port /tls/cert`, `§4a config`, `§4b events`, "
+"`§5 heartbeat/logs`, `§6 idempotence`, `§7a McuConfigMap`, `§8 "
+"EndpointSlice ip`, `§1 agent incremental digest`."
 
 #: ../../liaison/tracabilite.md:137
 msgid ""
 "Écarts complémentaires identifiés à l'audit (2026-07-28, manifestes K8s "
 "Core)"
 msgstr ""
+"Additional gaps found during the audit (2026-07-28, Core K8s "
+"manifests)"
 
 #: ../../liaison/tracabilite.md:139
 msgid ""
@@ -993,6 +1391,11 @@ msgid ""
 "`controller-runtime` ne fait pas de *pruning* de schéma CRD comme un vrai"
 " apiserver) :"
 msgstr ""
+"This matrix covers **contract ↔ Go code** compliance, but not the K8s "
+"manifests themselves (`config/`) — a blind spot that let three bugs "
+"independent of the Go code slip through, invisible to the tests (the "
+"`controller-runtime` fake client doesn't do CRD schema *pruning* like a"
+" real apiserver):"
 
 #: ../../liaison/tracabilite.md:145
 msgid ""
@@ -1006,6 +1409,16 @@ msgid ""
 "pas. Corrigé, ainsi que `status.configGeneration`/`tempCelsius`/ "
 "`taskHwmMin` (même CRD, même cause)."
 msgstr ""
+"✔ **CRD `mcunodes`: `spec.tokenRef` missing from the OpenAPI schema** "
+"(`config/crd/bases/embewi.io_mcunodes.yaml`). A structural CRD without "
+"`x-kubernetes-preserve-unknown-fields` gets silently *pruned* by the "
+"apiserver on any field not declared, on every write — `tokenRef` would"
+" have been stripped from every McuNode applied to a real cluster, "
+"breaking auth/token rotation/TLS cert push (everything depending on "
+"`Spec.TokenRef`). Invisible in our tests because the fake client "
+"doesn't prune. Fixed, along with "
+"`status.configGeneration`/`tempCelsius`/`taskHwmMin` (same CRD, same "
+"cause)."
 
 #: ../../liaison/tracabilite.md:154
 msgid ""
@@ -1014,6 +1427,10 @@ msgid ""
 "McuConfigMap (§7a) en cluster réel malgré un code Core entièrement "
 "fonctionnel et testé. Corrigé."
 msgstr ""
+"✔ **CRD `mcudeployments`: `spec.configMapRef` missing from the "
+"schema** — same mechanism, would have silently broken the entire "
+"McuConfigMap feature (§7a) on a real cluster despite fully functional,"
+" fully tested Core code. Fixed."
 
 #: ../../liaison/tracabilite.md:158
 msgid ""
@@ -1021,6 +1438,9 @@ msgid ""
 "`get/list/watch` — `clearPreviousToken` (confirmation de rotation, §4) "
 "patch le Secret, aurait échoué en 403."
 msgstr ""
+"✔ **RBAC** (`config/rbac/role.yaml`): `secrets` only had "
+"`get/list/watch` — `clearPreviousToken` (rotation confirmation, §4) "
+"patches the Secret, would have failed with 403."
 
 #: ../../liaison/tracabilite.md:161
 msgid ""
@@ -1029,6 +1449,11 @@ msgid ""
 "et aucun Service n'exposait de port nommé `metrics` — le pipeline §8b, "
 "pourtant entièrement fonctionnel côté code, n'aurait rien eu à scraper."
 msgstr ""
+"✔ **ServiceMonitor** (`config/monitoring/servicemonitor.yaml`): "
+"namespace `embewi` instead of `embewi-system` "
+"(Deployment/Service/RBAC), and no Service exposed a port named "
+"`metrics` — the §8b pipeline, though fully functional code-side, would"
+" have had nothing to scrape."
 
 #: ../../liaison/tracabilite.md:166
 msgid ""
@@ -1039,6 +1464,12 @@ msgid ""
 "`metav1.Condition`, absents des structs Go top-level mais présents dans "
 "le schéma imbriqué `conditions[]`)."
 msgstr ""
+"Verified through a systematic field-by-field comparison (Python "
+"script, Go JSON tags vs the 3 CRDs' OpenAPI properties) — all three "
+"schemas now match the Go types exactly (excluding K8s machinery fields"
+" `metadata`/`items` and fields internal to `metav1.Condition`, absent "
+"from the top-level Go structs but present in the nested "
+"`conditions[]` schema)."
 
 #: ../../liaison/tracabilite.md:172
 msgid ""
@@ -1049,10 +1480,16 @@ msgid ""
 "vérité en attendant plutôt que de re-dériver champ par champ à chaque "
 "changement de type Go."
 msgstr ""
+"**Recommendation**: these CRDs are hand-maintained (`controller-gen` "
+"unavailable in this environment — no network access for `go get "
+"sigs.k8s.io/controller-tools`). Regenerate via `make manifests` as soon"
+" as the tool is available, and treat this page as the source of truth "
+"in the meantime rather than re-deriving field by field on every Go "
+"type change."
 
 #: ../../liaison/tracabilite.md:179
 msgid "Comment l'utiliser"
-msgstr ""
+msgstr "How to use it"
 
 #: ../../liaison/tracabilite.md:181
 msgid ""
@@ -1060,6 +1497,8 @@ msgid ""
 "la ligne correspondante ici, vérifier qu'un ⬜ n'est pas resté après "
 "l'implémentation."
 msgstr ""
+"Before merging a contract change marked `[NORMATIVE]`: look up the "
+"matching row here, verify no ⬜ was left behind after implementation."
 
 #: ../../liaison/tracabilite.md:184
 msgid ""
@@ -1067,10 +1506,14 @@ msgid ""
 "statut de la ligne dans le même PR que le code — cette page dérive vite "
 "si elle n'est mise à jour qu'a posteriori."
 msgstr ""
+"After implementing a piece (Core or agent): update the row's status in"
+" the same PR as the code — this page drifts fast if only updated after"
+" the fact."
 
 #: ../../liaison/tracabilite.md:187
 msgid ""
 "Une divergence entre cette page et `embewi-contract-v2.md` §10 (Ordre de "
 "réalisation) est un signal que l'un des deux documents est périmé."
 msgstr ""
-
+"A divergence between this page and `embewi-contract-v2.md` §10 (Build "
+"order) is a signal that one of the two documents is out of date."
